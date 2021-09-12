@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>capa-aws-parent</artifactId>
+        <groupId>group.rxcloud</groupId>
+        <version>1.0.0-RELEASE</version>
+    </parent>
+
+    <artifactId>sdk-spi-aws</artifactId>
+    <name>capa-sdk-spi-aws</name>
+    <packaging>jar</packaging>
+
+    <dependencies>
+        <!-- Capa's core SDK with all features. -->
+        <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-sdk-spi</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
