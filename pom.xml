@@ -8,9 +8,6 @@
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
     <version>1.0.0-RELEASE</version>
-    <modules>
-        <module>sdk-spi-aws</module>
-    </modules>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -45,6 +42,10 @@
             <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <modules>
+        <module>sdk-spi-aws</module>
+    </modules>
 
     <properties>
         <java.version>8</java.version>
