@@ -7,7 +7,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.0.0-RELEASE</version>
+        <version>1.0.0.RELEASE</version>
     </parent>
 
     <artifactId>sdk-spi-aws</artifactId>
@@ -19,6 +19,19 @@
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-sdk-spi</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ec2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
         </dependency>
     </dependencies>
 
