@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config;
+package group.rxcloud.capa.spi.aws.mesh.config;
 
 import group.rxcloud.capa.infrastructure.env.CapaEnvironment;
 import group.rxcloud.capa.spi.config.RpcServiceOptions;
@@ -53,7 +53,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
      */
     public enum ServiceRpcInvokeMode {
         /**
-         * AWS → AWS
+         * AWS to AWS
          */
         AWS_TO_AWS,
         ;

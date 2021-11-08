@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.http;
+package group.rxcloud.capa.spi.aws.mesh.http;
 
 import group.rxcloud.capa.component.http.HttpResponse;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
