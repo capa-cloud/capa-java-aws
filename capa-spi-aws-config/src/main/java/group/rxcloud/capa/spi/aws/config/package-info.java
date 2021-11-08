@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-package group.rxcloud.capa.spi.aws;
+package group.rxcloud.capa.spi.aws.config;

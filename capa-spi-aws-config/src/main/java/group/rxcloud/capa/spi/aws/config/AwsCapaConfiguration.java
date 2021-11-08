@@ -14,12 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.configuration;
+package group.rxcloud.capa.spi.aws.config;
 
 import group.rxcloud.capa.component.configstore.CapaConfigStore;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import group.rxcloud.capa.spi.aws.config.AwsClientProviderLoader;
-import group.rxcloud.cloudruntimes.utils.TypeRef;
 import software.amazon.awssdk.services.appconfig.AppConfigAsyncClient;
 
 /**
@@ -36,9 +34,7 @@ public class AwsCapaConfiguration extends CapaConfigStore {
      */
     public AwsCapaConfiguration(CapaObjectSerializer objectSerializer) {
         super(objectSerializer);
-
-        TypeRef<AppConfigAsyncClient> ref = TypeRef.get(AppConfigAsyncClient.class);
-        appConfigAsyncClient = AwsClientProviderLoader.load(ref);
+        appConfigAsyncClient = AppConfigAsyncClient.create();
     }
 
     @Override

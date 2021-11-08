@@ -26,8 +26,8 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>sdk-spi-aws</artifactId>
-    <name>capa-sdk-spi-aws</name>
+    <artifactId>capa-spi-aws-infrastructure</artifactId>
+    <name>capa-sdk-spi-aws-infrastructure</name>
     <packaging>jar</packaging>
 
     <dependencies>
@@ -35,43 +35,6 @@
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-sdk-spi</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>appconfig</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>dynamodb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>appmesh</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>cloudwatch</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>rds</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sns</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>sqs</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>xray</artifactId>
         </dependency>
         <!-- unit test -->
         <dependency>

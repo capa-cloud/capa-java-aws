@@ -60,7 +60,10 @@
     </distributionManagement>
 
     <modules>
-        <module>sdk-spi-aws</module>
+        <module>capa-spi-aws</module>
+        <module>capa-spi-aws-mesh</module>
+        <module>capa-spi-aws-config</module>
+        <module>capa-spi-aws-infrastructure</module>
     </modules>
 
     <properties>
@@ -87,6 +90,23 @@
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-sdk-spi</artifactId>
                 <version>${capa.version}</version>
+            </dependency>
+
+            <!-- SDK modules -->
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-spi-aws-infrastructure</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-spi-aws-mesh</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-spi-aws-config</artifactId>
+                <version>${revision}</version>
             </dependency>
 
             <!-- aws sdk v2 -->
