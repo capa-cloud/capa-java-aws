@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.http.serialzer;
 
-
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
 import group.rxcloud.capa.spi.aws.mesh.env.AwsRpcEnvironment;
