@@ -14,28 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.config;
+package group.rxcloud.capa.spi.aws.mesh.constants;
 
-import group.rxcloud.cloudruntimes.utils.TypeRef;
-import software.amazon.awssdk.core.SdkClient;
 
-import java.util.Map;
+public interface AwsRpcConstants {
 
-/**
- * TODO load class from spi
- */
-public abstract class AwsClientProviderLoader {
+    interface Environments {
 
-    static Map<String, AwsClientProvider> clientProviders;
+        String AWS_RPC_APP_MESH_DEFAULT_PORT = "AWS_RPC_APP_MESH_DEFAULT_PORT";
 
-    public static <T extends SdkClient> T load(TypeRef<T> typeRef) {
-        AwsClientProvider provider = clientProviders.get(typeRef.getClass().getSimpleName());
-        SdkClient sdkClient = provider.provideAwsClient();
-        return (T) sdkClient;
     }
 
-    interface AwsClientProvider<T extends SdkClient> {
+    interface RpcProperties {
 
-        T provideAwsClient();
+        /**
+         * The aws app mesh http url template
+         * {serviceId}.svc.cluster.local is virtual service name (https://docs.aws.amazon.com/zh_cn/zh_cn/app-mesh/latest/userguide/virtual_services.html)
+         */
+        String AWS_APP_MESH_TEMPLATE = "http://{serviceId}.svc.cluster.local:{servicePort}/{operation}";
+
+    }
+
+    interface SerializerProperties {
+
+        String AWS_RPC_APP_MESH_SERIALIZER = "AWS_RPC_APP_MESH_SERIALIZER";
+
     }
 }

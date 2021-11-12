@@ -30,10 +30,14 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
      * Unique rpc service ID
      */
     private final String appId;
+
+    /**
+     * The rpc invoke mode
+     */
     private final ServiceRpcInvokeMode rpcInvokeMode;
 
-    /*
-     * Optional options
+    /**
+     * Optional options of Aws to Aws
      */
     private AwsToAwsServiceOptions awsToAwsServiceOptions;
 
@@ -55,11 +59,8 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
         /**
          * AWS to AWS
          */
-        AWS_TO_AWS,
-        ;
+        AWS_TO_AWS;
     }
-
-    // -- Properties Defined
 
     /**
      * Properties required when calling the Aws service
@@ -67,18 +68,18 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
     public interface ToAwsServiceOptions {
 
         /**
-         * SOA ServiceCode
+         * ServiceId
          *
-         * @return the service code
+         * @return the service id
          */
-        String getServiceCode();
+        String getServiceId();
 
         /**
-         * SOA ServiceName
+         * ServicePort
          *
-         * @return the service name
+         * @return the service port
          */
-        String getServiceName();
+        int getServicePort();
     }
 
     /**
@@ -94,47 +95,43 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
         CapaEnvironment.DeployVpcEnvironment getServiceEnv();
     }
 
-    // Specific Properties Impl
-
     /**
      * The service deployed on Aws calls the service of Aws
      */
     public static class AwsToAwsServiceOptions implements AwsServiceOptions, ToAwsServiceOptions {
 
-        private final String serviceCode;
-        private final String serviceName;
+        private final String serviceId;
+        private final int servicePort;
         private final CapaEnvironment.DeployVpcEnvironment serviceEnv;
 
         /**
-         * Instantiates a new Aws to aws service options.
-         *
-         * @param serviceCode the service code
-         * @param serviceName the service name
+         * @param serviceId   the service id
+         * @param servicePort the service port
          * @param serviceEnv  the service env
          */
-        public AwsToAwsServiceOptions(String serviceCode, String serviceName, CapaEnvironment.DeployVpcEnvironment serviceEnv) {
-            this.serviceCode = serviceCode;
-            this.serviceName = serviceName;
+        public AwsToAwsServiceOptions(String serviceId, int servicePort,
+                                      CapaEnvironment.DeployVpcEnvironment serviceEnv) {
+            this.serviceId = serviceId;
+            this.servicePort = servicePort;
             this.serviceEnv = serviceEnv;
         }
 
         @Override
-        public String getServiceCode() {
-            return serviceCode;
+        public String getServiceId() {
+            return serviceId;
         }
 
         @Override
-        public String getServiceName() {
-            return serviceName;
+        public int getServicePort() {
+            return servicePort;
         }
 
         @Override
         public CapaEnvironment.DeployVpcEnvironment getServiceEnv() {
             return serviceEnv;
         }
-    }
 
-    // -- Getter and Setter
+    }
 
     /**
      * Gets app id.
@@ -155,7 +152,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
     }
 
     /**
-     * Gets aws to aws service options.
+     * Gets Aws to Aws service options.
      *
      * @return the aws to aws service options
      */
@@ -164,9 +161,9 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
     }
 
     /**
-     * Sets aws to aws service options.
+     * Sets Aws to Aws service options.
      *
-     * @param awsToAwsServiceOptions the aws to aws service options
+     * @param awsToAwsServiceOptions the Aws to Aws service options
      */
     public void setAwsToAwsServiceOptions(AwsToAwsServiceOptions awsToAwsServiceOptions) {
         this.awsToAwsServiceOptions = awsToAwsServiceOptions;
