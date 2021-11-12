@@ -17,8 +17,18 @@
 package group.rxcloud.capa.spi.aws.config;
 
 import group.rxcloud.capa.component.configstore.CapaConfigStore;
+import group.rxcloud.capa.component.configstore.ConfigurationItem;
+import group.rxcloud.capa.component.configstore.GetRequest;
+import group.rxcloud.capa.component.configstore.StoreConfig;
+import group.rxcloud.capa.component.configstore.SubscribeReq;
+import group.rxcloud.capa.component.configstore.SubscribeResp;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
+import group.rxcloud.cloudruntimes.utils.TypeRef;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import software.amazon.awssdk.services.appconfig.AppConfigAsyncClient;
+
+import java.util.List;
 
 /**
  * TODO load aws client from spi
@@ -35,6 +45,36 @@ public class AwsCapaConfiguration extends CapaConfigStore {
     public AwsCapaConfiguration(CapaObjectSerializer objectSerializer) {
         super(objectSerializer);
         appConfigAsyncClient = AppConfigAsyncClient.create();
+    }
+
+    @Override
+    protected void doInit(StoreConfig storeConfig) {
+
+    }
+
+    @Override
+    public <T> Mono<List<ConfigurationItem<T>>> get(GetRequest getRequest, TypeRef<T> typeRef) {
+        return null;
+    }
+
+    @Override
+    public <T> Flux<SubscribeResp<T>> subscribe(SubscribeReq subscribeReq, TypeRef<T> typeRef) {
+        return null;
+    }
+
+    @Override
+    public String stopSubscribe() {
+        return null;
+    }
+
+    @Override
+    public String getDefaultGroup() {
+        return null;
+    }
+
+    @Override
+    public String getDefaultLabel() {
+        return null;
     }
 
     @Override

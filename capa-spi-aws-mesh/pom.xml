@@ -29,10 +29,20 @@
     <artifactId>capa-spi-aws-mesh</artifactId>
     <name>capa-skd-spi-aws-appmesh</name>
 
+    <properties>
+        <capa-serialzer.version>1.0.0.RELEASE</capa-serialzer.version>
+    </properties>
+    
     <dependencies>
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-spi-aws-infrastructure</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-serialzer</artifactId>
+            <version>${capa-serialzer.version}</version>
         </dependency>
 
         <dependency>
