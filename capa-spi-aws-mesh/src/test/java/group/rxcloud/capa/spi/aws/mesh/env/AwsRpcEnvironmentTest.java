@@ -14,29 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.constants;
+package group.rxcloud.capa.spi.aws.mesh.env;
 
-public interface AwsRpcConstants {
 
-    interface Environments {
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-        String AWS_RPC_APP_MESH_DEFAULT_PORT = "AWS_RPC_APP_MESH_DEFAULT_PORT";
+public class AwsRpcEnvironmentTest {
 
+    @Test
+    public void testGetServicePort_SuccessWhenDefault() {
+        int servicePort = AwsRpcEnvironment.getServicePort();
+        Assertions.assertEquals(8080, servicePort);
     }
 
-    interface RpcProperties {
-
-        /**
-         * The aws app mesh http url template
-         * {serviceId}.svc.cluster.local is virtual service name (https://docs.aws.amazon.com/zh_cn/zh_cn/app-mesh/latest/userguide/virtual_services.html)
-         */
-        String AWS_APP_MESH_TEMPLATE = "http://{serviceId}.svc.cluster.local:{servicePort}/{operation}";
-
+    @Test
+    public void testGetSerializer_SuccessWhenDefault() {
+        String serializer = AwsRpcEnvironment.getSerializer();
+        Assertions.assertEquals("baiji", serializer);
     }
 
-    interface SerializerProperties {
-
-        String AWS_RPC_APP_MESH_SERIALIZER = "AWS_RPC_APP_MESH_SERIALIZER";
-
-    }
 }
