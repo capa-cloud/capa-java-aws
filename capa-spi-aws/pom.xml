@@ -39,6 +39,7 @@
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-spi-aws-config</artifactId>
         </dependency>
+
         <!-- unit test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

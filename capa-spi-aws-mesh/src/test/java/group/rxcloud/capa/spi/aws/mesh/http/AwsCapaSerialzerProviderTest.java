@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.mesh.http;
 
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import group.rxcloud.capa.spi.aws.mesh.http.serialzer.AwsCapaSerialzerProvider;
+import group.rxcloud.capa.spi.aws.mesh.http.serializer.AwsCapaSerializerProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +26,7 @@ public class AwsCapaSerialzerProviderTest {
 
     @Test
     public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerialzerProvider.getSerializerOrDefault(null);
+        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
         Assertions.assertEquals("application/bjjson", serializerOrDefault.getContentType());
     }
 

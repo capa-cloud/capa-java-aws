@@ -21,8 +21,7 @@ import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.spi.aws.mesh.config.AwsRpcServiceOptions;
-import group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants;
-import group.rxcloud.capa.spi.aws.mesh.http.serialzer.AwsCapaSerialzerProvider;
+import group.rxcloud.capa.spi.aws.mesh.http.serializer.AwsCapaSerializerProvider;
 import group.rxcloud.capa.spi.config.RpcServiceOptions;
 import group.rxcloud.capa.spi.http.CapaSerializeHttpSpi;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
@@ -38,6 +37,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.AWS_APP_MESH_TEMPLATE;
+
 public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
     private static final Logger logger = LoggerFactory.getLogger(AwsCapaHttp.class);
@@ -49,7 +50,7 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
      * @param objectSerializer the object serializer
      */
     public AwsCapaHttp(OkHttpClient httpClient, CapaObjectSerializer objectSerializer) {
-        super(httpClient, AwsCapaSerialzerProvider.getSerializerOrDefault(objectSerializer));
+        super(httpClient, AwsCapaSerializerProvider.getSerializerOrDefault(objectSerializer));
     }
 
     @Override
@@ -59,21 +60,18 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                   Map<String, String> headers,
                                                                   TypeRef<T> type,
                                                                   RpcServiceOptions rpcServiceOptions) {
-
         Objects.requireNonNull(rpcServiceOptions, "rpcServiceOptions");
         AwsToAwsHttpServiceMeshInvoker awsToAwsHttpServiceMeshInvoker = new AwsToAwsHttpServiceMeshInvoker();
-        CompletableFuture<HttpResponse<T>> httpResponseCompletableFuture
-                = awsToAwsHttpServiceMeshInvoker.doInvokeSpiApi(
-                appId,
-                method,
-                requestData,
-                headers,
-                type,
-                (AwsRpcServiceOptions) rpcServiceOptions);
-
+        CompletableFuture<HttpResponse<T>> httpResponseCompletableFuture =
+                awsToAwsHttpServiceMeshInvoker.doInvokeSpiApi(
+                        appId,
+                        method,
+                        requestData,
+                        headers,
+                        type,
+                        (AwsRpcServiceOptions) rpcServiceOptions);
         return httpResponseCompletableFuture;
     }
-
 
     private interface AwsHttpInvoker {
 
@@ -95,7 +93,6 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                               Map<String, String> headers,
                                                               TypeRef<T> type,
                                                               AwsRpcServiceOptions rpcServiceOptions);
-
     }
 
     /**
@@ -115,8 +112,8 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                      Map<String, String> headers,
                                                                      TypeRef<T> type,
                                                                      AwsRpcServiceOptions rpcServiceOptions) {
-            AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions
-                    = rpcServiceOptions.getAwsToAwsServiceOptions();
+            AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions =
+                    rpcServiceOptions.getAwsToAwsServiceOptions();
 
             final String serviceId = awsToAwsServiceOptions.getServiceId();
             final int servicePort = awsToAwsServiceOptions.getServicePort();
@@ -129,7 +126,6 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
             return doAsyncInvoke(method, requestData, headers, type, serviceId, servicePort);
         }
 
-
         private <T> CompletableFuture<HttpResponse<T>> doAsyncInvoke(String method,
                                                                      Object requestData,
                                                                      Map<String, String> headers,
@@ -137,7 +133,7 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                      String serviceId,
                                                                      int servicePort) {
             // generate app mesh http url
-            final String appMeshHttpUrl = AwsRpcConstants.RpcProperties.AWS_APP_MESH_TEMPLATE
+            final String appMeshHttpUrl = AWS_APP_MESH_TEMPLATE
                     .replace("{serviceId}", serviceId)
                     .replace("{servicePort}", String.valueOf(servicePort))
                     .replace("{operation}", method);
@@ -146,7 +142,7 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
             CompletableFuture<HttpResponse<T>> asyncInvoke0 = post(appMeshHttpUrl, requestData, headers, type);
             asyncInvoke0.exceptionally(throwable -> {
                 if (logger.isWarnEnabled()) {
-                    logger.warn("[CtripCapaHttp] async invoke error", throwable);
+                    logger.warn("[AwsCapaHttp] async invoke error", throwable);
                 }
                 throw new CapaException(CapaErrorContext.DEPENDENT_SERVICE_ERROR, throwable);
             });
@@ -170,6 +166,5 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
             return doAsyncInvoke0(request, type);
         }
-
     }
 }

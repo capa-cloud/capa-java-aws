@@ -30,7 +30,7 @@
     <name>capa-skd-spi-aws-appmesh</name>
 
     <properties>
-        <capa-serialzer.version>1.0.0.RELEASE</capa-serialzer.version>
+        <capa-serializer.version>1.0.1.RELEASE</capa-serializer.version>
     </properties>
     
     <dependencies>
@@ -39,16 +39,18 @@
             <artifactId>capa-spi-aws-infrastructure</artifactId>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/group.rxcloud/capa-serializer -->
         <dependency>
             <groupId>group.rxcloud</groupId>
-            <artifactId>capa-serialzer</artifactId>
-            <version>${capa-serialzer.version}</version>
+            <artifactId>capa-serializer</artifactId>
+            <version>${capa-serializer.version}</version>
         </dependency>
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>appmesh</artifactId>
         </dependency>
+
         <!-- unit test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

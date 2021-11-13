@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serialzer;
+package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
@@ -24,9 +24,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The capa serialzer provider.
+ * The capa serializer provider.
  */
-public interface AwsCapaSerialzerProvider {
+public interface AwsCapaSerializerProvider {
 
     /**
      * Gets serializer or default.
@@ -51,8 +51,7 @@ public interface AwsCapaSerialzerProvider {
             SERIALIZER_FACTORY = new HashMap<>(2, 1);
 
             SERIALIZER_FACTORY.put("default", new DefaultObjectSerializer());
-            SERIALIZER_FACTORY.put("baiji", new BaijiSSJsonObjectSerialzer());
+            SERIALIZER_FACTORY.put("baiji", new BaijiSSJsonObjectSerializer());
         }
     }
-
 }

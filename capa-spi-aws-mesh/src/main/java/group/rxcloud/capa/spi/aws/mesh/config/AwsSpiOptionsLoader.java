@@ -34,7 +34,7 @@ public class AwsSpiOptionsLoader implements CapaSpiOptionsLoader<AwsRpcServiceOp
 
         // get variable
         CapaEnvironment.DeployVpcEnvironment deployVpcEnvironment = CapaEnvironment.getDeployVpcEnvironment();
-        int servicePort = AwsRpcEnvironment.getServicePort();
+        final int servicePort = AwsRpcEnvironment.getServicePort();
 
         // generate awsToAwsServiceOptions
         // appid is serviceId
