@@ -22,8 +22,10 @@ import software.amazon.awssdk.utils.StringUtils;
 
 import java.util.Objects;
 
-import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.Environments.AWS_RPC_APP_MESH_DEFAULT_PORT;
-import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.SerializerProperties.AWS_RPC_APP_MESH_SERIALIZER;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_DEFAULT_PORT;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_PORT;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.SerializerProperties.RPC_AWS_APP_MESH_DEFAULT_SERIALIZER;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.SerializerProperties.RPC_AWS_APP_MESH_SERIALIZER;
 
 /**
  * Rpc System Environment Properties In Aws.
@@ -42,20 +44,28 @@ public abstract class AwsRpcEnvironment {
 
     static {
         // setup server port
-        String awsRpcAppMeshPort = System.getProperty(AWS_RPC_APP_MESH_DEFAULT_PORT);
-        if (StringUtils.isBlank(awsRpcAppMeshPort)) {
-            awsRpcAppMeshPort = "8080";
-        }
-        try {
-            servicePort = Integer.valueOf(awsRpcAppMeshPort);
-        } catch (Exception e) {
-            new CapaException(CapaErrorContext.PARAMETER_ERROR, "Rpc Port: " + awsRpcAppMeshPort);
-        }
+        initPort();
 
         // setup serializer
-        String awsRpcAppMeshSerializer = System.getProperty(AWS_RPC_APP_MESH_SERIALIZER);
+        initSerializer();
+    }
+
+    private static void initPort() {
+        String awsRpcAppMeshPort = System.getProperty(RPC_AWS_APP_MESH_PORT);
+        if (StringUtils.isBlank(awsRpcAppMeshPort)) {
+            awsRpcAppMeshPort = RPC_AWS_APP_MESH_DEFAULT_PORT;
+        }
+        try {
+            servicePort = Integer.parseInt(awsRpcAppMeshPort);
+        } catch (Exception e) {
+            throw new CapaException(CapaErrorContext.PARAMETER_ERROR, "Rpc Port: " + awsRpcAppMeshPort);
+        }
+    }
+
+    private static void initSerializer() {
+        String awsRpcAppMeshSerializer = System.getProperty(RPC_AWS_APP_MESH_SERIALIZER);
         if (StringUtils.isBlank(awsRpcAppMeshSerializer)) {
-            awsRpcAppMeshSerializer = "baiji";
+            awsRpcAppMeshSerializer = RPC_AWS_APP_MESH_DEFAULT_SERIALIZER;
         }
         serializer = awsRpcAppMeshSerializer;
     }
@@ -67,5 +77,4 @@ public abstract class AwsRpcEnvironment {
     public static String getSerializer() {
         return Objects.requireNonNull(serializer, "Capa Serializer");
     }
-
 }

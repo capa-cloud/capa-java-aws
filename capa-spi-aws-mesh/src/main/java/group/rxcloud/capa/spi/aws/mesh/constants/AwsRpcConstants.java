@@ -16,15 +16,12 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.constants;
 
+/**
+ * The Aws rpc constants.
+ */
 public interface AwsRpcConstants {
 
-    interface Environments {
-
-        String AWS_RPC_APP_MESH_DEFAULT_PORT = "AWS_RPC_APP_MESH_DEFAULT_PORT";
-
-    }
-
-    interface RpcProperties {
+    interface AppMeshProperties {
 
         /**
          * The aws app mesh http url template
@@ -32,11 +29,15 @@ public interface AwsRpcConstants {
          */
         String AWS_APP_MESH_TEMPLATE = "http://{serviceId}.svc.cluster.local:{servicePort}/{operation}";
 
+        String RPC_AWS_APP_MESH_DEFAULT_PORT = "8080";
+
+        String RPC_AWS_APP_MESH_PORT = "CAPA_RPC_AWS_APP_MESH_PORT";
     }
 
     interface SerializerProperties {
 
-        String AWS_RPC_APP_MESH_SERIALIZER = "AWS_RPC_APP_MESH_SERIALIZER";
+        String RPC_AWS_APP_MESH_DEFAULT_SERIALIZER = "baiji";
 
+        String RPC_AWS_APP_MESH_SERIALIZER = "CAPA_RPC_AWS_APP_MESH_SERIALIZER";
     }
 }

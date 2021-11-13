@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serialzer;
+package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
-import group.rxcloud.capa.addons.serialzer.CapaSerialzer;
-import group.rxcloud.capa.addons.serialzer.ssjson.SSJsonSerializer;
+import group.rxcloud.capa.addons.serializer.CapaSerialzer;
+import group.rxcloud.capa.addons.serializer.ssjson.SSJsonSerializer;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 
@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * Serializes and deserializes the object with baiji.
  */
-public class BaijiSSJsonObjectSerialzer implements CapaObjectSerializer {
+public class BaijiSSJsonObjectSerializer implements CapaObjectSerializer {
 
     private static final SSJsonSerializer SERIALIZER = CapaSerialzer.ssJsonSerializer;
 
@@ -62,7 +62,6 @@ public class BaijiSSJsonObjectSerialzer implements CapaObjectSerializer {
         return (T) deserialize;
     }
 
-
     /**
      * Returns the content type of the request.
      *
@@ -72,5 +71,4 @@ public class BaijiSSJsonObjectSerialzer implements CapaObjectSerializer {
     public String getContentType() {
         return "application/bjjson";
     }
-
 }
