@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.env;
 
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

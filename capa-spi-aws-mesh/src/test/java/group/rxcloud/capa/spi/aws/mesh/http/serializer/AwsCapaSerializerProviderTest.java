@@ -14,15 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http;
-
+package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import group.rxcloud.capa.spi.aws.mesh.http.serializer.AwsCapaSerializerProvider;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class AwsCapaSerialzerProviderTest {
+public class AwsCapaSerializerProviderTest {
 
     @Test
     public void testGetSerializerOrDefault_Success() {
