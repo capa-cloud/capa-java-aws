@@ -73,6 +73,7 @@
         <capa.version>1.0.4.RELEASE</capa.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <junit.version>5.3.1</junit.version>
+        <mockito-core.version>3.6.0</mockito-core.version>
         <checkstyle.version>3.1.2</checkstyle.version>
         <checkstyle.skip>false</checkstyle.skip>
         <apache.rat.version>0.13</apache.rat.version>
@@ -128,6 +129,12 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter-engine</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito-core.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
