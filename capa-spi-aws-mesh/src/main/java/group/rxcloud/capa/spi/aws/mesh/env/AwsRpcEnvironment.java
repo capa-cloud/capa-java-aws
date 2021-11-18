@@ -24,8 +24,11 @@ import java.util.Objects;
 
 import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_DEFAULT_PORT;
 import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_PORT;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_DEFAULT_NAMESPACE;
+import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.AppMeshProperties.RPC_AWS_APP_MESH_NAMESPACE;
 import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.SerializerProperties.RPC_AWS_APP_MESH_DEFAULT_SERIALIZER;
 import static group.rxcloud.capa.spi.aws.mesh.constants.AwsRpcConstants.SerializerProperties.RPC_AWS_APP_MESH_SERIALIZER;
+
 
 /**
  * Rpc System Environment Properties In Aws.
@@ -42,12 +45,20 @@ public abstract class AwsRpcEnvironment {
      */
     private static String serializer;
 
+    /**
+     * The namespace of app mesh
+     */
+    private static String namespace;
+
     static {
         // setup server port
         initPort();
 
         // setup serializer
         initSerializer();
+
+        // setup namespace
+        initNamespace();
     }
 
     private static void initPort() {
@@ -70,11 +81,23 @@ public abstract class AwsRpcEnvironment {
         serializer = awsRpcAppMeshSerializer;
     }
 
+    private static void initNamespace() {
+        String awsRpcAppMeshNamespace = System.getProperty(RPC_AWS_APP_MESH_NAMESPACE);
+        if (StringUtils.isBlank(awsRpcAppMeshNamespace)) {
+            awsRpcAppMeshNamespace = RPC_AWS_APP_MESH_DEFAULT_NAMESPACE;
+        }
+        namespace = awsRpcAppMeshNamespace;
+    }
+
     public static int getServicePort() {
         return Objects.requireNonNull(servicePort, "Capa Rpc App Mesh Port");
     }
 
     public static String getSerializer() {
         return Objects.requireNonNull(serializer, "Capa Serializer");
+    }
+
+    public static String getNamespace() {
+        return Objects.requireNonNull(namespace, "Capa Namespace");
     }
 }

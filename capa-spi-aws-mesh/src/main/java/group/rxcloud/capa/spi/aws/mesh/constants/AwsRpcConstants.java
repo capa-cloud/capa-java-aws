@@ -27,11 +27,16 @@ public interface AwsRpcConstants {
          * The aws app mesh http url template
          * {serviceId}.svc.cluster.local is virtual service name (https://docs.aws.amazon.com/zh_cn/zh_cn/app-mesh/latest/userguide/virtual_services.html)
          */
-        String AWS_APP_MESH_TEMPLATE = "http://{serviceId}.svc.cluster.local:{servicePort}/{operation}";
+        String AWS_APP_MESH_TEMPLATE = "http://{serviceId}.{namespace}.svc.cluster.local:{servicePort}/{operation}";
 
         String RPC_AWS_APP_MESH_DEFAULT_PORT = "8080";
 
         String RPC_AWS_APP_MESH_PORT = "CAPA_RPC_AWS_APP_MESH_PORT";
+
+        String RPC_AWS_APP_MESH_NAMESPACE = "CAPA_RPC_AWS_APP_MESH_NAMESPACE";
+
+        String RPC_AWS_APP_MESH_DEFAULT_NAMESPACE = "FWS";
+
     }
 
     interface SerializerProperties {

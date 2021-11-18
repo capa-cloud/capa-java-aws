@@ -80,6 +80,13 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
          * @return the service port
          */
         int getServicePort();
+
+        /**
+         * Namespace
+         *
+         * @return the namespace
+         */
+        String getNamespace();
     }
 
     /**
@@ -102,6 +109,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
 
         private final String serviceId;
         private final int servicePort;
+        private final String namespace;
         private final CapaEnvironment.DeployVpcEnvironment serviceEnv;
 
         /**
@@ -109,10 +117,11 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
          * @param servicePort the service port
          * @param serviceEnv  the service env
          */
-        public AwsToAwsServiceOptions(String serviceId, int servicePort,
+        public AwsToAwsServiceOptions(String serviceId, int servicePort, String namespace,
                                       CapaEnvironment.DeployVpcEnvironment serviceEnv) {
             this.serviceId = serviceId;
             this.servicePort = servicePort;
+            this.namespace = namespace;
             this.serviceEnv = serviceEnv;
         }
 
@@ -124,6 +133,11 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
         @Override
         public int getServicePort() {
             return servicePort;
+        }
+
+        @Override
+        public String getNamespace() {
+            return namespace;
         }
 
         @Override

@@ -35,11 +35,12 @@ public class AwsSpiOptionsLoader implements CapaSpiOptionsLoader<AwsRpcServiceOp
         // get variable
         CapaEnvironment.DeployVpcEnvironment deployVpcEnvironment = CapaEnvironment.getDeployVpcEnvironment();
         final int servicePort = AwsRpcEnvironment.getServicePort();
+        final String namespace = AwsRpcEnvironment.getNamespace();
 
         // generate awsToAwsServiceOptions
         // appid is serviceId
         AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions
-                = new AwsRpcServiceOptions.AwsToAwsServiceOptions(appId, servicePort, deployVpcEnvironment);
+                = new AwsRpcServiceOptions.AwsToAwsServiceOptions(appId, servicePort, namespace, deployVpcEnvironment);
         rpcServiceOptions.setAwsToAwsServiceOptions(awsToAwsServiceOptions);
 
         return rpcServiceOptions;
