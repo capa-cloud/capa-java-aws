@@ -33,4 +33,9 @@ public class AwsRpcEnvironmentTest {
         Assertions.assertEquals("baiji", serializer);
     }
 
+    @Test
+    public void testGetNamespace_SuccessWhenDefault() {
+        String namespace = AwsRpcEnvironment.getNamespace();
+        Assertions.assertEquals("FWS", namespace);
+    }
 }

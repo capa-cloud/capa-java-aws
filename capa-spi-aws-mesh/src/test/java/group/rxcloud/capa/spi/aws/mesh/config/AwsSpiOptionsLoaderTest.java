@@ -34,6 +34,7 @@ public class AwsSpiOptionsLoaderTest {
 
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
+        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getNamespace());
         Assertions.assertEquals(CapaEnvironment.DeployVpcEnvironment.FWS, awsToAwsServiceOptions.getServiceEnv());
     }
 

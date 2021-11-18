@@ -117,13 +117,14 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
             final String serviceId = awsToAwsServiceOptions.getServiceId();
             final int servicePort = awsToAwsServiceOptions.getServicePort();
+            final String namespace = awsToAwsServiceOptions.getNamespace();
 
             if (StringUtils.isBlank(serviceId)) {
                 throw new CapaException(CapaErrorContext.PARAMETER_ERROR,
                         "Aws appMesh no serviceId error.");
             }
 
-            return doAsyncInvoke(method, requestData, headers, type, serviceId, servicePort);
+            return doAsyncInvoke(method, requestData, headers, type, serviceId, namespace, servicePort);
         }
 
         private <T> CompletableFuture<HttpResponse<T>> doAsyncInvoke(String method,
@@ -131,10 +132,12 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                      Map<String, String> headers,
                                                                      TypeRef<T> type,
                                                                      String serviceId,
+                                                                     String namespace,
                                                                      int servicePort) {
             // generate app mesh http url
             final String appMeshHttpUrl = AWS_APP_MESH_TEMPLATE
                     .replace("{serviceId}", serviceId)
+                    .replace("{namespace}", namespace)
                     .replace("{servicePort}", String.valueOf(servicePort))
                     .replace("{operation}", method);
 

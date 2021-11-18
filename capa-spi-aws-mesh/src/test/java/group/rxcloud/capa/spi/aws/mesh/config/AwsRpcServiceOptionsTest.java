@@ -35,6 +35,7 @@ public class AwsRpcServiceOptionsTest {
         awsToAwsServiceOptions = new AwsRpcServiceOptions.AwsToAwsServiceOptions(
                 "appId",
                 8080,
+                "FWS",
                 CapaEnvironment.DeployVpcEnvironment.FWS);
         awsRpcServiceOptions.setAwsToAwsServiceOptions(awsToAwsServiceOptions);
     }
@@ -58,6 +59,7 @@ public class AwsRpcServiceOptionsTest {
 
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
+        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getNamespace());
         Assertions.assertEquals(CapaEnvironment.DeployVpcEnvironment.FWS, awsToAwsServiceOptions.getServiceEnv());
     }
 
