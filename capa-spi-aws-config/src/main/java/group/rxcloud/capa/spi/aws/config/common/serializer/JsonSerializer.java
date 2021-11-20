@@ -26,7 +26,6 @@ import java.io.IOException;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public class JsonSerializer implements Serializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(JsonSerializer.class);

@@ -28,7 +28,6 @@ import java.io.IOException;
  * default serializer, handle as json file
  *
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public class DefaultSerializer implements Serializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSerializer.class);

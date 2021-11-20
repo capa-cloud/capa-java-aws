@@ -18,7 +18,6 @@ package group.rxcloud.capa.spi.aws.config.common.enums;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public enum FileType {
     PROPERTIES(".properties"),

@@ -49,7 +49,7 @@ import static group.rxcloud.capa.spi.aws.config.common.constant.CapaAWSConstants
 import static group.rxcloud.capa.spi.aws.config.common.constant.CapaAWSConstants.DEFAULT_ENV;
 
 /**
- *
+ * @author Reckless Xu
  */
 public class AwsCapaConfiguration extends CapaConfigStoreSpi {
 

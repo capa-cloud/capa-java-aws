@@ -21,7 +21,6 @@ import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public interface Serializer {
     <T> T deserialize(SdkBytes contentSdkBytes, TypeRef<T> type);

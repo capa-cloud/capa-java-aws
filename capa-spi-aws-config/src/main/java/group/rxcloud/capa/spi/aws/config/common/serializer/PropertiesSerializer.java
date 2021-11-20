@@ -29,7 +29,6 @@ import java.util.Properties;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public class PropertiesSerializer implements Serializer {
 

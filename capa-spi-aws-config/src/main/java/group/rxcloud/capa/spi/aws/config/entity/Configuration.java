@@ -20,7 +20,6 @@ import group.rxcloud.capa.component.configstore.ConfigurationItem;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/16
  */
 public class Configuration<T> {
     private String clientConfigurationVersion;

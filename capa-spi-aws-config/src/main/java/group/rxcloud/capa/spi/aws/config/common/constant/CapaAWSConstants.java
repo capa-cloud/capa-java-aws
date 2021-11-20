@@ -18,7 +18,6 @@ package group.rxcloud.capa.spi.aws.config.common.constant;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/19
  */
 public interface CapaAWSConstants {
     String AWS_APP_CONFIG_NAME = "AWS AppConfig";

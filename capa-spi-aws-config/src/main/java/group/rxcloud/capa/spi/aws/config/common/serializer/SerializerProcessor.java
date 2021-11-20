@@ -23,7 +23,6 @@ import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * @author Reckless Xu
- * @date 2021/11/18
  */
 public class SerializerProcessor {
     private final JsonSerializer jsonSerializer;
