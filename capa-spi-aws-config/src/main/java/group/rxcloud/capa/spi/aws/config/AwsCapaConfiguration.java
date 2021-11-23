@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -83,6 +84,17 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
     }
 
     @Override
+    public String stopSubscribe() {
+        AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler.dispose();
+        return "success";
+    }
+
+    @Override
+    public void close() {
+        //no need
+    }
+
+    @Override
     protected void doInit(StoreConfig storeConfig) {
         //no need
     }
@@ -93,10 +105,8 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
         if (CollectionUtils.isNullOrEmpty(keys)) {
             return Mono.error(new IllegalArgumentException("keys is null or empty"));
         }
-
         //todo:need to get the specific env from system properties
         String applicationName = appId + "_FAT";
-
         String configurationName = keys.get(0);
         String clientConfigurationVersion = getCurVersion(applicationName, configurationName);
 
@@ -116,7 +126,10 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
                         items.add((ConfigurationItem<T>) getCurConfigurationItem(applicationName, configurationName));
                     } else {
                         //if version changes,update versionMap and return
-                        items.add(updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion()));
+                        Configuration<T> tConfiguration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                        if (tConfiguration != null) {
+                            items.add(tConfiguration.getConfigurationItem());
+                        }
                     }
                     return items;
                 });
@@ -126,10 +139,58 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
     protected <T> Flux<SubscribeResp<T>> doSubscribe(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
         //todo:need to get the specific env from system properties
         String applicationName = appId + "_FAT";
-
         String configurationName = keys.get(0);
 
-        return Flux.create(fluxSink -> {
+        initSubscribe(applicationName, configurationName, group, label, metadata, type);
+        return doSub(applicationName, configurationName, group, label, metadata, type, appId);
+    }
+
+    private synchronized <T> Mono<Boolean> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
+        //double check whether has been initialized
+        if (isInitialized(applicationName, configurationName)) {
+            return Mono.just(true);
+        }
+        return Mono.create(monoSink -> {
+            AwsCapaConfigurationScheduler.INSTANCE.configInitScheduler
+                    .schedule(() -> {
+                        String version = getCurVersion(applicationName, configurationName);
+
+                        GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                .application(applicationName)
+                                .clientId(UUID.randomUUID().toString())
+                                .configuration(configurationName)
+                                .clientConfigurationVersion(version)
+                                .environment(DEFAULT_ENV)
+                                .build();
+
+                        GetConfigurationResponse resp = null;
+                        try {
+                            resp = appConfigAsyncClient.getConfiguration(request).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                        }
+                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                            initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                            monoSink.success(true);
+                        }
+                    }, 0, TimeUnit.SECONDS);
+        });
+    }
+
+    private <T> void initSubscribe(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
+        if (!isInitialized(applicationName, configurationName)) {
+            initConfig(applicationName, configurationName, group, label, metadata, type).block();
+        }
+        if (!isSubscribed(applicationName, configurationName)) {
+            createSubscribe(applicationName, configurationName, type);
+        }
+    }
+
+    private synchronized <T> void createSubscribe(String applicationName, String configurationName, TypeRef<T> type) {
+        if (isSubscribed(applicationName, configurationName)) {
+            return;
+        }
+        Flux.create(fluxSink -> {
             AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
                     .schedulePeriodically(() -> {
                         String version = getCurVersion(applicationName, configurationName);
@@ -148,46 +209,51 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
                         } catch (InterruptedException | ExecutionException e) {
                             LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
                         }
+                        //update subscribed status if needs
+                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+
                         if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            /*
-                            the reason why not use publisher scheduler to update configuration item is that switch thread needs time,
-                            when the polling frequency is high,the second polling request may happens before the first request has been
-                            update successfully by publisher thread. In that case,the subscriber may receive several signals for one actual
-                            change event.
-                             */
-                            ConfigurationItem<T> configurationItem = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
-                            SubscribeResp<T> subscribeResp = convertToSubscribeResp(configurationItem, appId);
-                            fluxSink.next(subscribeResp);
+                            fluxSink.next(resp);
                         }
+                        //todo:make the polling frequency configurable
                     }, 0, 1, TimeUnit.SECONDS);
-        });
+        })
+                .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
+                .map(origin -> {
+                    GetConfigurationResponse resp = (GetConfigurationResponse) origin;
+                    Configuration configuration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                    return configuration == null ? Configuration.EMPTY : configuration;
+                }).filter(resp -> resp != Configuration.EMPTY)
+                .subscribe(resp -> {
+                    resp.triggers(resp.getConfigurationItem());
+                });
     }
 
-    private <T> SubscribeResp<T> convertToSubscribeResp(ConfigurationItem<T> item, String appId) {
-        SubscribeResp<T> resp = new SubscribeResp<>();
-        resp.setStoreName(AWS_APP_CONFIG_NAME);
-        resp.setAppId(appId);
-        resp.setItems(Lists.newArrayList(item));
-        return resp;
+    private <T> Flux<SubscribeResp<T>> doSub(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type, String appId) {
+        Configuration<?> configuration = getConfiguration(applicationName, configurationName);
+        return Flux.create(fluxSink -> {
+            configuration.addListener(configurationItem -> {
+                fluxSink.next(configurationItem);
+            });
+        })
+                .map(resp -> (ConfigurationItem<T>) resp)
+                .map(resp -> convert(resp, appId));
     }
 
-    @Override
-    public String stopSubscribe() {
-        AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler.dispose();
-        return "success";
-    }
-
-    @Override
-    public void close() {
-        //no need
+    private <T> SubscribeResp<T> convert(ConfigurationItem<T> conf, String appId) {
+        SubscribeResp<T> subscribeResp = new SubscribeResp<>();
+        subscribeResp.setItems(Lists.newArrayList(conf));
+        subscribeResp.setAppId(appId);
+        subscribeResp.setStoreName(AWS_APP_CONFIG_NAME);
+        return subscribeResp;
     }
 
     /**
      * get current version
      * ps:version can be null
      *
-     * @param applicationName
-     * @param configurationName
+     * @param applicationName   applicationName
+     * @param configurationName configurationName
      * @return current version
      */
     private String getCurVersion(String applicationName, String configurationName) {
@@ -208,34 +274,81 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
         return configurationItem;
     }
 
-    private synchronized <T> ConfigurationItem<T> updateConfigurationItem(String applicationName, String configurationName, TypeRef<T> type, SdkBytes contentSdkBytes, String version) {
+    /**
+     * @param applicationName   applicationName
+     * @param configurationName configurationName
+     * @param type              type of content
+     * @param contentSdkBytes   content value with SdkBytes type
+     * @param version           new version
+     * @param <T>               T
+     * @return return the new value or null if not actually update
+     */
+    private <T> Configuration<T> updateConfigurationItem(String applicationName, String configurationName, TypeRef<T> type, SdkBytes contentSdkBytes, String version) {
         ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
-        if (configMap == null) {
-            configMap = new ConcurrentHashMap<>();
-            T content = serializerProcessor.deserialize(contentSdkBytes, type, configurationName);
 
-            Configuration<T> configuration = new Configuration<>();
+        //in fact,configMap.get(configurationName) is always not null, as it has been initialized in initialization process
+        Configuration<T> configuration = (Configuration<T>) configMap.get(configurationName);
+
+        synchronized (configuration.lock) {
+            //check whether content has been updated by other thread
+            if (configMap.containsKey(configurationName) && Objects.equals(configMap.get(configurationName).getClientConfigurationVersion(), version)) {
+                return null;
+            }
+            //do need to update
+            T content = serializerProcessor.deserialize(contentSdkBytes, type, configurationName);
             configuration.setClientConfigurationVersion(version);
 
-            ConfigurationItem<T> configurationItem = new ConfigurationItem<>();
-            configurationItem.setKey(configurationName);
+            ConfigurationItem<T> configurationItem = Optional.ofNullable(configuration.getConfigurationItem()).orElse(new ConfigurationItem<>());
             configurationItem.setContent(content);
             configuration.setConfigurationItem(configurationItem);
 
             configMap.put(configurationName, configuration);
-            versionMap.put(applicationName, configMap);
-            return configurationItem;
-        } else {
-            T content = serializerProcessor.deserialize(contentSdkBytes, type, configurationName);
-            Configuration<T> configuration = new Configuration<>();
-            configuration.setClientConfigurationVersion(version);
-
-            ConfigurationItem<T> configurationItem = new ConfigurationItem<>();
-            configurationItem.setKey(configurationName);
-            configurationItem.setContent(content);
-            configuration.setConfigurationItem(configurationItem);
-            configMap.put(configurationName, configuration);
-            return configurationItem;
+            return configuration;
         }
     }
+
+    private <T> Configuration<T> initConfigurationItem(String applicationName, String configurationName, TypeRef<T> type, SdkBytes contentSdkBytes, String version) {
+        ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
+        boolean initApplication = false;
+        if (configMap == null) {
+            configMap = new ConcurrentHashMap<>();
+            initApplication = true;
+        }
+
+        Configuration<T> configuration = new Configuration<>();
+        configuration.setClientConfigurationVersion(version);
+        configuration.getInitialized().compareAndSet(false, true);
+
+        ConfigurationItem<T> configurationItem = new ConfigurationItem<>();
+        configurationItem.setKey(configurationName);
+        T content = serializerProcessor.deserialize(contentSdkBytes, type, configurationName);
+        configurationItem.setContent(content);
+        configuration.setConfigurationItem(configurationItem);
+
+        configMap.put(configurationName, configuration);
+
+        if (initApplication) {
+            versionMap.put(applicationName, configMap);
+        }
+        return configuration;
+    }
+
+    private boolean isInitialized(String applicationName, String configurationName) {
+        ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
+        return configMap != null && configMap.containsKey(configurationName) && configMap.get(configurationName).getInitialized().get();
+    }
+
+    private boolean isSubscribed(String applicationName, String configurationName) {
+        ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
+        return configMap != null && configMap.containsKey(configurationName) && configMap.get(configurationName).getInitialized().get() && configMap.get(configurationName).getSubscribed().get();
+    }
+
+    private Configuration<?> getConfiguration(String applicationName, String configurationName) {
+        ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
+        if (configMap != null && configMap.containsKey(configurationName)) {
+            return configMap.get(configurationName);
+        }
+        return Configuration.EMPTY;
+    }
+
 }

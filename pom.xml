@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>${revision}</version>
+    <version>1.0.1.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -39,6 +39,10 @@
         <developer>
             <name>kevinten10</name>
             <email>596823919@qq.com</email>
+        </developer>
+        <developer>
+            <name>reckless11</name>
+            <email>reckless0511@gmail.com</email>
         </developer>
     </developers>
 
@@ -80,7 +84,6 @@
         <maven.resource.version>3.2.0</maven.resource.version>
         <maven.surefire.version>3.0.0-M1</maven.surefire.version>
         <maven.jacoco.version>0.8.6</maven.jacoco.version>
-        <revision>1.0.1.RELEASE</revision>
         <guava.version>19.0</guava.version>
     </properties>
 
@@ -97,22 +100,22 @@
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws</artifactId>
-                <version>${revision}</version>
+                <version>1.0.1.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-infrastructure</artifactId>
-                <version>${revision}</version>
+                <version>1.0.1.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-mesh</artifactId>
-                <version>${revision}</version>
+                <version>1.0.1.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
-                <version>${revision}</version>
+                <version>1.0.1.RELEASE</version>
             </dependency>
 
             <!-- aws sdk v2 -->
