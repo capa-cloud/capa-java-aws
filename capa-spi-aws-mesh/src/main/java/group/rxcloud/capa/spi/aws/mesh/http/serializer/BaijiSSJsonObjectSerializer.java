@@ -16,8 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
-import group.rxcloud.capa.addons.serializer.CapaSerialzer;
-import group.rxcloud.capa.addons.serializer.ssjson.SSJsonSerializer;
+import group.rxcloud.capa.addons.serializer.CapaSerializer;
+import group.rxcloud.capa.addons.serializer.baiji.ssjson.SSJsonSerializer;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 
@@ -30,7 +30,7 @@ import java.io.IOException;
  */
 public class BaijiSSJsonObjectSerializer implements CapaObjectSerializer {
 
-    private static final SSJsonSerializer SERIALIZER = CapaSerialzer.ssJsonSerializer;
+    private static final SSJsonSerializer SERIALIZER = CapaSerializer.ssJsonSerializer;
 
     /**
      * Serializes a given state object into byte array.
