@@ -26,6 +26,7 @@ import static reactor.core.scheduler.Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE;
  * @author Reckless Xu
  */
 public enum AwsCapaConfigurationScheduler {
+
     INSTANCE;
 
     public final Scheduler configInitScheduler = Schedulers.newBoundedElastic(DEFAULT_BOUNDED_ELASTIC_SIZE, DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,

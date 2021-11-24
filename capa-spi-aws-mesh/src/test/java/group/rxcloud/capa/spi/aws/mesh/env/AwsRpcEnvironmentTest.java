@@ -16,6 +16,7 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.env;
 
+import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,19 +24,19 @@ public class AwsRpcEnvironmentTest {
 
     @Test
     public void testGetServicePort_SuccessWhenDefault() {
-        int servicePort = AwsRpcEnvironment.getServicePort();
+        int servicePort = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshPort();
         Assertions.assertEquals(8080, servicePort);
     }
 
     @Test
     public void testGetSerializer_SuccessWhenDefault() {
-        String serializer = AwsRpcEnvironment.getSerializer();
+        String serializer = AwsCapaRpcProperties.SerializerProperties.Settings.getRpcAwsAppMeshSerializer();
         Assertions.assertEquals("baiji", serializer);
     }
 
     @Test
     public void testGetNamespace_SuccessWhenDefault() {
-        String namespace = AwsRpcEnvironment.getNamespace();
+        String namespace = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshNamespace();
         Assertions.assertEquals("FWS", namespace);
     }
 }

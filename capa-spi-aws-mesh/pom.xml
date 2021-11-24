@@ -32,7 +32,7 @@
     <properties>
         <capa-serializer.version>1.0.2.RELEASE</capa-serializer.version>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>group.rxcloud</groupId>

@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
-import group.rxcloud.capa.spi.aws.mesh.env.AwsRpcEnvironment;
+import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ public interface AwsCapaSerializerProvider {
      * @return the serializer or default
      */
     static CapaObjectSerializer getSerializerOrDefault(CapaObjectSerializer originSerializer) {
-        final String serializerName = AwsRpcEnvironment.getSerializer();
+        final String serializerName = AwsCapaRpcProperties.SerializerProperties.Settings.getRpcAwsAppMeshSerializer();
         Map<String, CapaObjectSerializer> serializerFactory = AwsCapaSerializerFactory.SERIALIZER_FACTORY;
         return serializerFactory.getOrDefault(serializerName, originSerializer);
     }

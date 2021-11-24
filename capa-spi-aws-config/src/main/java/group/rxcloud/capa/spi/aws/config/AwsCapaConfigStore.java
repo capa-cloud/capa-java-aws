@@ -21,9 +21,9 @@ import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import group.rxcloud.capa.spi.aws.config.common.serializer.SerializerProcessor;
 import group.rxcloud.capa.spi.aws.config.entity.Configuration;
 import group.rxcloud.capa.spi.aws.config.scheduler.AwsCapaConfigurationScheduler;
+import group.rxcloud.capa.spi.aws.config.serializer.SerializerProcessor;
 import group.rxcloud.capa.spi.configstore.CapaConfigStoreSpi;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import org.slf4j.Logger;
@@ -46,19 +46,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static group.rxcloud.capa.spi.aws.config.common.constant.CapaAWSConstants.AWS_APP_CONFIG_NAME;
-import static group.rxcloud.capa.spi.aws.config.common.constant.CapaAWSConstants.DEFAULT_ENV;
 
 /**
  * @author Reckless Xu
  */
-public class AwsCapaConfiguration extends CapaConfigStoreSpi {
+public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AwsCapaConfiguration.class);
-
-    private AppConfigAsyncClient appConfigAsyncClient;
-
-    private SerializerProcessor serializerProcessor;
+    private static final Logger LOGGER = LoggerFactory.getLogger(AwsCapaConfigStore.class);
 
     /**
      * key of versionMap--applicationName,format:appid_ENV,e.g:"12345_FAT"
@@ -69,17 +63,31 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
      * <p>
      * ps:currentHashMap may not be necessary, as update in synchronized method
      */
-    private static Map<String, ConcurrentHashMap<String, Configuration<?>>> versionMap;
+    private static final Map<String, ConcurrentHashMap<String, Configuration<?>>> versionMap;
+
+    static {
+        versionMap = new ConcurrentHashMap<>();
+    }
+
+    private final CapaObjectSerializer objectSerializer;
+
+    private SerializerProcessor serializerProcessor;
+
+    private AppConfigAsyncClient appConfigAsyncClient;
 
     /**
      * Instantiates a new Capa configuration.
      *
      * @param objectSerializer Serializer for transient request/response objects.
      */
-    public AwsCapaConfiguration(CapaObjectSerializer objectSerializer) {
+    public AwsCapaConfigStore(CapaObjectSerializer objectSerializer) {
         super(objectSerializer);
+        this.objectSerializer = objectSerializer;
+    }
+
+    @Override
+    protected void doInit(StoreConfig storeConfig) {
         appConfigAsyncClient = AppConfigAsyncClient.create();
-        versionMap = new ConcurrentHashMap<>();
         serializerProcessor = new SerializerProcessor(objectSerializer);
     }
 
@@ -91,12 +99,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
 
     @Override
     public void close() {
-        //no need
-    }
-
-    @Override
-    protected void doInit(StoreConfig storeConfig) {
-        //no need
+        // no need
     }
 
     @Override
@@ -105,7 +108,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
         if (CollectionUtils.isNullOrEmpty(keys)) {
             return Mono.error(new IllegalArgumentException("keys is null or empty"));
         }
-        //todo:need to get the specific env from system properties
+        // todo:need to get the specific env from system properties
         String applicationName = appId + "_FAT";
         String configurationName = keys.get(0);
         String clientConfigurationVersion = getCurVersion(applicationName, configurationName);
@@ -115,17 +118,17 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
                 .clientId(UUID.randomUUID().toString())
                 .configuration(configurationName)
                 .clientConfigurationVersion(clientConfigurationVersion)
-                .environment(DEFAULT_ENV)
+                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
                 .build();
 
         return Mono.fromFuture(() -> appConfigAsyncClient.getConfiguration(request))
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(resp -> {
-                    //if version doesn't change, get from versionMap
+                    // if version doesn't change, get from versionMap
                     if (Objects.equals(clientConfigurationVersion, resp.configurationVersion())) {
                         items.add((ConfigurationItem<T>) getCurConfigurationItem(applicationName, configurationName));
                     } else {
-                        //if version changes,update versionMap and return
+                        // if version changes,update versionMap and return
                         Configuration<T> tConfiguration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
                         if (tConfiguration != null) {
                             items.add(tConfiguration.getConfigurationItem());
@@ -137,7 +140,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
 
     @Override
     protected <T> Flux<SubscribeResp<T>> doSubscribe(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
-        //todo:need to get the specific env from system properties
+        // todo: need to get the specific env from system properties
         String applicationName = appId + "_FAT";
         String configurationName = keys.get(0);
 
@@ -146,7 +149,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
     }
 
     private synchronized <T> Mono<Boolean> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
-        //double check whether has been initialized
+        // double check whether has been initialized
         if (isInitialized(applicationName, configurationName)) {
             return Mono.just(true);
         }
@@ -160,7 +163,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
                                 .clientId(UUID.randomUUID().toString())
                                 .configuration(configurationName)
                                 .clientConfigurationVersion(version)
-                                .environment(DEFAULT_ENV)
+                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
                                 .build();
 
                         GetConfigurationResponse resp = null;
@@ -191,39 +194,40 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
             return;
         }
         Flux.create(fluxSink -> {
-            AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
-                    .schedulePeriodically(() -> {
-                        String version = getCurVersion(applicationName, configurationName);
+                    AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
+                            .schedulePeriodically(() -> {
+                                String version = getCurVersion(applicationName, configurationName);
 
-                        GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                .application(applicationName)
-                                .clientId(UUID.randomUUID().toString())
-                                .configuration(configurationName)
-                                .clientConfigurationVersion(version)
-                                .environment(DEFAULT_ENV)
-                                .build();
+                                GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                        .application(applicationName)
+                                        .clientId(UUID.randomUUID().toString())
+                                        .configuration(configurationName)
+                                        .clientConfigurationVersion(version)
+                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
+                                        .build();
 
-                        GetConfigurationResponse resp = null;
-                        try {
-                            resp = appConfigAsyncClient.getConfiguration(request).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                        }
-                        //update subscribed status if needs
-                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+                                GetConfigurationResponse resp = null;
+                                try {
+                                    resp = appConfigAsyncClient.getConfiguration(request).get();
+                                } catch (InterruptedException | ExecutionException e) {
+                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                                }
+                                // update subscribed status if needs
+                                getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
 
-                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            fluxSink.next(resp);
-                        }
-                        //todo:make the polling frequency configurable
-                    }, 0, 1, TimeUnit.SECONDS);
-        })
+                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                                    fluxSink.next(resp);
+                                }
+                                // todo: make the polling frequency configurable
+                            }, 0, 1, TimeUnit.SECONDS);
+                })
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(origin -> {
                     GetConfigurationResponse resp = (GetConfigurationResponse) origin;
                     Configuration configuration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
                     return configuration == null ? Configuration.EMPTY : configuration;
-                }).filter(resp -> resp != Configuration.EMPTY)
+                })
+                .filter(resp -> resp != Configuration.EMPTY)
                 .subscribe(resp -> {
                     resp.triggers(resp.getConfigurationItem());
                 });
@@ -232,10 +236,10 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
     private <T> Flux<SubscribeResp<T>> doSub(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type, String appId) {
         Configuration<?> configuration = getConfiguration(applicationName, configurationName);
         return Flux.create(fluxSink -> {
-            configuration.addListener(configurationItem -> {
-                fluxSink.next(configurationItem);
-            });
-        })
+                    configuration.addListener(configurationItem -> {
+                        fluxSink.next(configurationItem);
+                    });
+                })
                 .map(resp -> (ConfigurationItem<T>) resp)
                 .map(resp -> convert(resp, appId));
     }
@@ -244,7 +248,7 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
         SubscribeResp<T> subscribeResp = new SubscribeResp<>();
         subscribeResp.setItems(Lists.newArrayList(conf));
         subscribeResp.setAppId(appId);
-        subscribeResp.setStoreName(AWS_APP_CONFIG_NAME);
+        subscribeResp.setStoreName(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigName());
         return subscribeResp;
     }
 
@@ -286,15 +290,15 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
     private <T> Configuration<T> updateConfigurationItem(String applicationName, String configurationName, TypeRef<T> type, SdkBytes contentSdkBytes, String version) {
         ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
 
-        //in fact,configMap.get(configurationName) is always not null, as it has been initialized in initialization process
+        // in fact,configMap.get(configurationName) is always not null, as it has been initialized in initialization process
         Configuration<T> configuration = (Configuration<T>) configMap.get(configurationName);
 
         synchronized (configuration.lock) {
-            //check whether content has been updated by other thread
+            // check whether content has been updated by other thread
             if (configMap.containsKey(configurationName) && Objects.equals(configMap.get(configurationName).getClientConfigurationVersion(), version)) {
                 return null;
             }
-            //do need to update
+            // do need to update
             T content = serializerProcessor.deserialize(contentSdkBytes, type, configurationName);
             configuration.setClientConfigurationVersion(version);
 
@@ -350,5 +354,4 @@ public class AwsCapaConfiguration extends CapaConfigStoreSpi {
         }
         return Configuration.EMPTY;
     }
-
 }

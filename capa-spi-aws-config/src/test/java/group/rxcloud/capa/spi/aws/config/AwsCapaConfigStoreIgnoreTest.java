@@ -34,12 +34,12 @@ import java.util.Map;
  * @author Reckless Xu
  */
 
-class AwsCapaConfigurationIgnoreTest {
+class AwsCapaConfigStoreIgnoreTest {
 
     @Disabled
     @Test
     void testDoGet(){
-        AwsCapaConfiguration ins = new AwsCapaConfiguration(new DefaultObjectSerializer());
+        AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
 
         Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         mono.subscribe(resp->{
@@ -58,7 +58,7 @@ class AwsCapaConfigurationIgnoreTest {
     @Disabled
     @Test
     void testDoSubscribe(){
-        AwsCapaConfiguration ins = new AwsCapaConfiguration(new DefaultObjectSerializer());
+        AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
 
         Flux<SubscribeResp<User>> flux1 = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         flux1.subscribe(resp -> {

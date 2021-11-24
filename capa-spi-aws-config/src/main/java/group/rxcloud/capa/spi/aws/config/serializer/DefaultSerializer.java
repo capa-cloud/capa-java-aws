@@ -14,43 +14,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.common.serializer;
+package group.rxcloud.capa.spi.aws.config.serializer;
 
+import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
 
 /**
+ * default serializer, handle as json file
+ *
  * @author Reckless Xu
  */
-public class PropertiesSerializer implements Serializer {
+public class DefaultSerializer implements Serializer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesSerializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSerializer.class);
+
+    final CapaObjectSerializer objectSerializer;
+
+    public DefaultSerializer(CapaObjectSerializer objectSerializer) {
+        this.objectSerializer = objectSerializer;
+    }
 
     @Override
     public <T> T deserialize(SdkBytes contentSdkBytes, TypeRef<T> type) {
-        Map<String, String> map = parsePropertiesToMap(contentSdkBytes.asInputStream());
-        return (T) map;
-    }
-
-    public static Map<String, String> parsePropertiesToMap(InputStream inputStream) {
-        Properties properties = new Properties();
+        T content = null;
         try {
-            properties.load(inputStream);
+            content = objectSerializer.deserialize(contentSdkBytes.asByteArray(), type);
         } catch (IOException e) {
-            LOGGER.error("properties load error", e);
+            LOGGER.error("error accurs when deserializing,content:{},typeName:{}", contentSdkBytes.asUtf8String(), type.getType().getTypeName(), e);
         }
-        Map<String, String> map = new LinkedHashMap<>(properties.size());
-        for (String key : properties.stringPropertyNames()) {
-            map.put(key, properties.getProperty(key));
-        }
-        return map;
+        return content;
     }
 }

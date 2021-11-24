@@ -14,13 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.common.constant;
+package group.rxcloud.capa.spi.aws.config.serializer;
+
+import group.rxcloud.cloudruntimes.utils.TypeRef;
+import software.amazon.awssdk.core.SdkBytes;
 
 /**
  * @author Reckless Xu
  */
-public interface CapaAWSConstants {
-    String AWS_APP_CONFIG_NAME = "AWS AppConfig";
+public interface Serializer {
 
-    String DEFAULT_ENV = "ENV";
+    <T> T deserialize(SdkBytes contentSdkBytes, TypeRef<T> type);
 }

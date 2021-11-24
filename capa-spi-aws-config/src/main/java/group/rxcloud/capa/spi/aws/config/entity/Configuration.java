@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Reckless Xu
  */
 public class Configuration<T> {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);
 
     public static final Configuration<Void> EMPTY = new Configuration<>();
@@ -53,7 +54,9 @@ public class Configuration<T> {
     public boolean triggers(ConfigurationItem<T> data) {
         boolean result = true;
         for (ConfigurationListener<T> listener : listeners) {
-            if (!trigger(listener, data)) result = false;
+            if (!trigger(listener, data)) {
+                result = false;
+            }
         }
         return result;
     }
@@ -67,7 +70,6 @@ public class Configuration<T> {
             return false;
         }
     }
-
 
     public String getClientConfigurationVersion() {
         return clientConfigurationVersion;

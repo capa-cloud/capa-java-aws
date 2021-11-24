@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.common.serializer;
+package group.rxcloud.capa.spi.aws.config.serializer;
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import group.rxcloud.capa.spi.aws.config.common.enums.FileType;
+import group.rxcloud.capa.spi.aws.config.enums.FileType;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import software.amazon.awssdk.core.SdkBytes;
 
@@ -25,16 +25,15 @@ import software.amazon.awssdk.core.SdkBytes;
  * @author Reckless Xu
  */
 public class SerializerProcessor {
-    private final JsonSerializer jsonSerializer;
-
-    private final PropertiesSerializer propertiesSerializer;
 
     private final DefaultSerializer defaultSerializer;
+    private final JsonSerializer jsonSerializer;
+    private final PropertiesSerializer propertiesSerializer;
 
     public SerializerProcessor(CapaObjectSerializer objectSerializer) {
+        defaultSerializer = new DefaultSerializer(objectSerializer);
         jsonSerializer = new JsonSerializer(objectSerializer);
         propertiesSerializer = new PropertiesSerializer();
-        defaultSerializer = new DefaultSerializer(objectSerializer);
     }
 
     public <T> T deserialize(SdkBytes contentSdkBytes, TypeRef<T> type, String configurationName) {

@@ -14,21 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.common.enums;
+package group.rxcloud.capa.spi.aws.config.enums;
 
 /**
  * @author Reckless Xu
  */
 public enum FileType {
+
     PROPERTIES(".properties"),
     JSON(".json");
+
     private final String suffix;
 
     FileType(String suffix) {
         this.suffix = suffix;
     }
 
-    public String suffix(){
+    public String suffix() {
         return suffix;
     }
 }

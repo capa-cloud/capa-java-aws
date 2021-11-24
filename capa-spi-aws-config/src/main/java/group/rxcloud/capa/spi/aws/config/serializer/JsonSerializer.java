@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.common.serializer;
+package group.rxcloud.capa.spi.aws.config.serializer;
 
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
@@ -25,16 +25,15 @@ import software.amazon.awssdk.core.SdkBytes;
 import java.io.IOException;
 
 /**
- * default serializer, handle as json file
- *
  * @author Reckless Xu
  */
-public class DefaultSerializer implements Serializer {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSerializer.class);
+public class JsonSerializer implements Serializer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JsonSerializer.class);
 
     final CapaObjectSerializer objectSerializer;
 
-    public DefaultSerializer(CapaObjectSerializer objectSerializer) {
+    public JsonSerializer(CapaObjectSerializer objectSerializer) {
         this.objectSerializer = objectSerializer;
     }
 

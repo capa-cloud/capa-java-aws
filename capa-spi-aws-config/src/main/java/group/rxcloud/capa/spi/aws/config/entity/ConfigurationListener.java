@@ -23,5 +23,6 @@ import group.rxcloud.capa.component.configstore.ConfigurationItem;
  * 2021/11/22
  */
 public interface ConfigurationListener<T> {
+
     void onLoad(ConfigurationItem<T> configurationItem);
 }
