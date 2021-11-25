@@ -22,6 +22,7 @@ import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
 import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
 import group.rxcloud.capa.spi.aws.config.entity.Configuration;
+import group.rxcloud.capa.spi.aws.config.serializer.SerializerProcessor;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +62,18 @@ class AwsCapaConfigStoreTest {
         ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
         StoreConfig storeConfig = new StoreConfig();
         storeConfig.setStoreName(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigName());
-        ins.doInit(storeConfig);
+
+        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
+        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
+        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
+
+
+        SerializerProcessor serializerProcessor = PowerMockito.mock(SerializerProcessor.class);
+        Whitebox.setInternalState(ins, "serializerProcessor", serializerProcessor);
+        User user = new User();
+        user.setName("reckless");
+        user.setAge(28);
+        PowerMockito.when(serializerProcessor.deserialize(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(user);
     }
 
     @AfterEach
@@ -86,10 +98,6 @@ class AwsCapaConfigStoreTest {
 
     @Test
     void testDoGet_SuccessWithInitialization() {
-        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
-        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
-        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
-
         Mono<List<ConfigurationItem<User>>> listMono = ins.doGet("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
         List<ConfigurationItem<User>> block = listMono.block();
         Assertions.assertNotNull(block);
@@ -100,10 +108,6 @@ class AwsCapaConfigStoreTest {
 
     @Test
     void testDoGet_SuccessWithGetInitialization_VersionNotChange() {
-        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
-        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
-        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
-
         Mono<List<ConfigurationItem<User>>> listMono2 = ins.doGet("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
         List<ConfigurationItem<User>> block2 = listMono2.block();
         Assertions.assertNotNull(block2);
@@ -115,10 +119,6 @@ class AwsCapaConfigStoreTest {
 
     @Test
     void testDoSubscribe_SuccessInitialization() {
-        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
-        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
-        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
-
         Flux<SubscribeResp<User>> subscribeRespFlux = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
         SubscribeResp<User> userSubscribeResp = subscribeRespFlux.blockFirst();
         Assertions.assertNotNull(userSubscribeResp);
@@ -155,10 +155,6 @@ class AwsCapaConfigStoreTest {
         configMap.put("test.json", configuration);
         map.put("100012345_FAT", configMap);
 
-        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
-        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
-        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
-
         Mono<List<ConfigurationItem<User>>> listMono = ins.doGet("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
         List<ConfigurationItem<User>> block = listMono.block();
         Assertions.assertNotNull(block);
@@ -194,10 +190,6 @@ class AwsCapaConfigStoreTest {
 
         configMap.put("test.json", configuration);
         map.put("100012345_FAT", configMap);
-
-        AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
-        Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
-        PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
 
         Flux<SubscribeResp<User>> subscribeRespFlux = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
         SubscribeResp<User> userSubscribeResp = subscribeRespFlux.skip(1L).blockFirst();
