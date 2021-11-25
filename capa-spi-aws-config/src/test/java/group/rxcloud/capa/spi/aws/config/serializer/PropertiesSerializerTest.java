@@ -14,37 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config;
+package group.rxcloud.capa.spi.aws.config.serializer;
+
+import group.rxcloud.cloudruntimes.utils.TypeRef;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.SdkBytes;
+
+import java.util.Map;
 
 /**
  * @author Reckless Xu
+ * 2021/11/25
  */
-public class User {
-    private String name;
+class PropertiesSerializerTest {
 
-    private Integer age;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getAge() {
-        return age;
-    }
-
-    public void setAge(Integer age) {
-        this.age = age;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "name='" + name + '\'' +
-                ", age=" + age +
-                '}';
+    @Test
+    void testDeserialize_Success() {
+        SdkBytes sdkBytes = SdkBytes.fromUtf8String("name=reckless\n" +
+                "age=28");
+        PropertiesSerializer ins = new PropertiesSerializer();
+        Map<String,String> deserialize = ins.deserialize(sdkBytes, TypeRef.get(Map.class));
+        Assertions.assertEquals("reckless",deserialize.get("name"));
+        Assertions.assertEquals("28",deserialize.get("age"));
     }
 }

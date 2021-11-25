@@ -40,7 +40,7 @@ public class PropertiesSerializer implements Serializer {
         return (T) map;
     }
 
-    public Map<String, String> parsePropertiesToMap(InputStream inputStream) {
+    private Map<String, String> parsePropertiesToMap(InputStream inputStream) {
         Properties properties = new Properties();
         try {
             properties.load(inputStream);

@@ -111,6 +111,23 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         // todo:need to get the specific env from system properties
         String applicationName = appId + "_FAT";
         String configurationName = keys.get(0);
+        /*
+            check whether the config file has been initialized before
+            the function of if here is to first check init status to rough filter
+         */
+        if (!isInitialized(applicationName, configurationName)) {
+            /*
+            return Configuration.EMPTY if has been initialized before by others,
+            or return configuration which initialized just now.
+             */
+            Configuration<T> initConfiguration = initConfig(applicationName, configurationName, group, label, metadata, type);
+            if (!Objects.equals(initConfiguration, Configuration.EMPTY)) {
+                //init just now and the config value is the latest value,return immediately
+                return Mono.just(Lists.newArrayList(initConfiguration.getConfigurationItem()));
+            }
+        }
+
+        //has been initialized before, and need to get the latest value
         String clientConfigurationVersion = getCurVersion(applicationName, configurationName);
 
         GetConfigurationRequest request = GetConfigurationRequest.builder()
@@ -148,10 +165,21 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         return doSub(applicationName, configurationName, group, label, metadata, type, appId);
     }
 
-    private synchronized <T> Mono<Boolean> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
+    /**
+     * @param applicationName   applicationName
+     * @param configurationName configurationName
+     * @param group             group
+     * @param label             label
+     * @param metadata          metadata
+     * @param type              type
+     * @param <T>               T
+     * @return return Configuration.EMPTY if has been initialized before by others and not been done this time;
+     * or return configuration value which initialized just now.
+     */
+    private synchronized <T> Configuration<T> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
         // double check whether has been initialized
         if (isInitialized(applicationName, configurationName)) {
-            return Mono.just(true);
+            return Configuration.EMPTY;
         }
         return Mono.create(monoSink -> {
             AwsCapaConfigurationScheduler.INSTANCE.configInitScheduler
@@ -173,16 +201,18 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                             LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
                         }
                         if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
-                            monoSink.success(true);
+                            Configuration<T> tConfiguration = initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                            monoSink.success(tConfiguration);
                         }
-                    }, 0, TimeUnit.SECONDS);
-        });
+                    });
+        })
+                .map(resp -> (Configuration<T>) resp)
+                .block();
     }
 
     private <T> void initSubscribe(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
         if (!isInitialized(applicationName, configurationName)) {
-            initConfig(applicationName, configurationName, group, label, metadata, type).block();
+            initConfig(applicationName, configurationName, group, label, metadata, type);
         }
         if (!isSubscribed(applicationName, configurationName)) {
             createSubscribe(applicationName, configurationName, type);
@@ -194,33 +224,33 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return;
         }
         Flux.create(fluxSink -> {
-                    AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
-                            .schedulePeriodically(() -> {
-                                String version = getCurVersion(applicationName, configurationName);
+            AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
+                    .schedulePeriodically(() -> {
+                        String version = getCurVersion(applicationName, configurationName);
 
-                                GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                        .application(applicationName)
-                                        .clientId(UUID.randomUUID().toString())
-                                        .configuration(configurationName)
-                                        .clientConfigurationVersion(version)
-                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
-                                        .build();
+                        GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                .application(applicationName)
+                                .clientId(UUID.randomUUID().toString())
+                                .configuration(configurationName)
+                                .clientConfigurationVersion(version)
+                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
+                                .build();
 
-                                GetConfigurationResponse resp = null;
-                                try {
-                                    resp = appConfigAsyncClient.getConfiguration(request).get();
-                                } catch (InterruptedException | ExecutionException e) {
-                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                                }
-                                // update subscribed status if needs
-                                getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+                        GetConfigurationResponse resp = null;
+                        try {
+                            resp = appConfigAsyncClient.getConfiguration(request).get();
+                        } catch (InterruptedException | ExecutionException e) {
+                            LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                        }
+                        // update subscribed status if needs
+                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
 
-                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                                    fluxSink.next(resp);
-                                }
-                                // todo: make the polling frequency configurable
-                            }, 0, 1, TimeUnit.SECONDS);
-                })
+                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                            fluxSink.next(resp);
+                        }
+                        // todo: make the polling frequency configurable
+                    }, 0, 1, TimeUnit.SECONDS);
+        })
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(origin -> {
                     GetConfigurationResponse resp = (GetConfigurationResponse) origin;
@@ -235,11 +265,14 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
     private <T> Flux<SubscribeResp<T>> doSub(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type, String appId) {
         Configuration<?> configuration = getConfiguration(applicationName, configurationName);
+        if (Objects.equals(configuration, Configuration.EMPTY)) {
+            return Flux.empty();
+        }
         return Flux.create(fluxSink -> {
-                    configuration.addListener(configurationItem -> {
-                        fluxSink.next(configurationItem);
-                    });
-                })
+            configuration.addListener(configurationItem -> {
+                fluxSink.next(configurationItem);
+            });
+        })
                 .map(resp -> (ConfigurationItem<T>) resp)
                 .map(resp -> convert(resp, appId));
     }

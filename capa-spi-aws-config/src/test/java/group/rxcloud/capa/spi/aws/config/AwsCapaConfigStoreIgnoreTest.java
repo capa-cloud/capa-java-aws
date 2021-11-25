@@ -18,9 +18,11 @@ package group.rxcloud.capa.spi.aws.config;
 
 import com.google.common.collect.Lists;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
+import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
 import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
@@ -35,19 +37,26 @@ import java.util.Map;
  */
 
 class AwsCapaConfigStoreIgnoreTest {
+    AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
+
+    @BeforeEach
+    public void setUp(){
+        ins.doInit(new StoreConfig());
+    }
 
     @Disabled
     @Test
     void testDoGet(){
-        AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
 
         Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         mono.subscribe(resp->{
-            System.out.println("hihi,age:"+resp.get(0).getContent().getAge());
-            while(true){
-
-            }
+            System.out.println(resp.get(0).getContent().getAge());
         });
+        List<ConfigurationItem<User>> block = mono.block();
+        mono.subscribe(resp->{
+            System.out.println(resp.get(0).getContent().getAge());
+        });
+        List<ConfigurationItem<User>> block2 = mono.block();
         System.out.println("");
         while (true){
 
@@ -58,7 +67,6 @@ class AwsCapaConfigStoreIgnoreTest {
     @Disabled
     @Test
     void testDoSubscribe(){
-        AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
 
         Flux<SubscribeResp<User>> flux1 = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         flux1.subscribe(resp -> {
