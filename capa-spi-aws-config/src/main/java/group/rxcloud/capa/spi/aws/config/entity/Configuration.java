@@ -30,7 +30,7 @@ public class Configuration<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Configuration.class);
 
-    public static final Configuration<Void> EMPTY = new Configuration<>();
+    public static final Configuration EMPTY = new Configuration<>();
 
     private String clientConfigurationVersion;
 
