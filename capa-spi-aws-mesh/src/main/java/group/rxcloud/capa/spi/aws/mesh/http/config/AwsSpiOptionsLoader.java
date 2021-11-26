@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.config;
+package group.rxcloud.capa.spi.aws.mesh.http.config;
 
-import group.rxcloud.capa.infrastructure.env.CapaEnvironment;
+import group.rxcloud.capa.infrastructure.CapaEnvironment;
 import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
 import group.rxcloud.capa.spi.config.CapaSpiOptionsLoader;
 
@@ -32,14 +32,14 @@ public class AwsSpiOptionsLoader implements CapaSpiOptionsLoader<AwsRpcServiceOp
         AwsRpcServiceOptions rpcServiceOptions = new AwsRpcServiceOptions(appId, AwsRpcServiceOptions.ServiceRpcInvokeMode.AWS_TO_AWS);
 
         // get variable
-        CapaEnvironment.DeployVpcEnvironment deployVpcEnvironment = CapaEnvironment.getDeployVpcEnvironment();
+        final String deployEnv = CapaEnvironment.Provider.getInstance().getDeployEnv();
         final int servicePort = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshPort();
         final String namespace = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshNamespace();
 
         // generate awsToAwsServiceOptions
         // appid is serviceId
         AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions =
-                new AwsRpcServiceOptions.AwsToAwsServiceOptions(appId, servicePort, namespace, deployVpcEnvironment);
+                new AwsRpcServiceOptions.AwsToAwsServiceOptions(appId, servicePort, namespace, deployEnv);
         rpcServiceOptions.setAwsToAwsServiceOptions(awsToAwsServiceOptions);
 
         return rpcServiceOptions;

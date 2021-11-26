@@ -21,7 +21,7 @@ import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
-import group.rxcloud.capa.spi.aws.mesh.config.AwsRpcServiceOptions;
+import group.rxcloud.capa.spi.aws.mesh.http.config.AwsRpcServiceOptions;
 import group.rxcloud.capa.spi.aws.mesh.http.serializer.AwsCapaSerializerProvider;
 import group.rxcloud.capa.spi.config.RpcServiceOptions;
 import group.rxcloud.capa.spi.http.CapaSerializeHttpSpi;

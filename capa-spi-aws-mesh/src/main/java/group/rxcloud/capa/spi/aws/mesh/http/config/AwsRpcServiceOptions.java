@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.config;
+package group.rxcloud.capa.spi.aws.mesh.http.config;
 
-import group.rxcloud.capa.infrastructure.env.CapaEnvironment;
 import group.rxcloud.capa.spi.config.RpcServiceOptions;
 
 import java.util.Objects;
@@ -99,7 +98,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
          *
          * @return the service env
          */
-        CapaEnvironment.DeployVpcEnvironment getServiceEnv();
+        String getServiceEnv();
     }
 
     /**
@@ -110,7 +109,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
         private final String serviceId;
         private final int servicePort;
         private final String namespace;
-        private final CapaEnvironment.DeployVpcEnvironment serviceEnv;
+        private final String serviceEnv;
 
         /**
          * @param serviceId   the service id
@@ -118,7 +117,7 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
          * @param serviceEnv  the service env
          */
         public AwsToAwsServiceOptions(String serviceId, int servicePort, String namespace,
-                                      CapaEnvironment.DeployVpcEnvironment serviceEnv) {
+                                      String serviceEnv) {
             this.serviceId = serviceId;
             this.servicePort = servicePort;
             this.namespace = namespace;
@@ -141,10 +140,9 @@ public class AwsRpcServiceOptions implements RpcServiceOptions {
         }
 
         @Override
-        public CapaEnvironment.DeployVpcEnvironment getServiceEnv() {
+        public String getServiceEnv() {
             return serviceEnv;
         }
-
     }
 
     /**

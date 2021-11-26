@@ -18,8 +18,8 @@ package group.rxcloud.capa.spi.aws.mesh.http;
 
 import group.rxcloud.capa.component.http.HttpResponse;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
-import group.rxcloud.capa.spi.aws.mesh.config.AwsRpcServiceOptions;
-import group.rxcloud.capa.spi.aws.mesh.config.AwsSpiOptionsLoader;
+import group.rxcloud.capa.spi.aws.mesh.http.config.AwsRpcServiceOptions;
+import group.rxcloud.capa.spi.aws.mesh.http.config.AwsSpiOptionsLoader;
 import group.rxcloud.capa.spi.aws.mesh.http.serializer.BaijiSSJsonObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import okhttp3.OkHttpClient;
