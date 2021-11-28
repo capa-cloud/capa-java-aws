@@ -55,6 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @FixMethodOrder(MethodSorters.JVM)
 @RunWith(PowerMockRunner.class)
 class AwsCapaConfigStoreTest {
+
     AwsCapaConfigStore ins;
 
     @BeforeEach

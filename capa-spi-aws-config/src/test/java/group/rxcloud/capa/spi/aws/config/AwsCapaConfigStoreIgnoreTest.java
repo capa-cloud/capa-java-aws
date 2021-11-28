@@ -37,6 +37,7 @@ import java.util.Map;
  */
 
 class AwsCapaConfigStoreIgnoreTest {
+
     AwsCapaConfigStore ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
 
     @BeforeEach
@@ -47,7 +48,6 @@ class AwsCapaConfigStoreIgnoreTest {
     @Disabled
     @Test
     void testDoGet(){
-
         Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         mono.subscribe(resp->{
             System.out.println(resp.get(0).getContent().getAge());
@@ -61,13 +61,11 @@ class AwsCapaConfigStoreIgnoreTest {
         while (true){
 
         }
-
     }
 
     @Disabled
     @Test
     void testDoSubscribe(){
-
         Flux<SubscribeResp<User>> flux1 = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         flux1.subscribe(resp -> {
             System.out.println("1:"+resp.getItems().get(0).getContent().getAge());

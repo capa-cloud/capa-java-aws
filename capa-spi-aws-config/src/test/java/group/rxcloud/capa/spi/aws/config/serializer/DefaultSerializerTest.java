@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.SdkBytes;
  * 2021/11/25
  */
 class DefaultSerializerTest {
+
     @Test
     void testDeserialize_Success(){
         SdkBytes sdkBytes = SdkBytes.fromUtf8String("{\n" +
