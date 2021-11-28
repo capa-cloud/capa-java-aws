@@ -16,7 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.http.config;
 
-import group.rxcloud.capa.spi.config.RpcServiceOptions;
+
+import group.rxcloud.capa.spi.http.config.RpcServiceOptions;
 
 import java.util.Objects;
 

@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.mesh.http.config;
 
 import group.rxcloud.capa.infrastructure.CapaEnvironment;
 import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
-import group.rxcloud.capa.spi.config.CapaSpiOptionsLoader;
+import group.rxcloud.capa.spi.http.config.CapaSpiOptionsLoader;
 
 import java.util.Objects;
 

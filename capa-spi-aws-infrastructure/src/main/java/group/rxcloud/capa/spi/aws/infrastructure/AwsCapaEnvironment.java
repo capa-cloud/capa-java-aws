@@ -30,7 +30,7 @@ public class AwsCapaEnvironment implements CapaEnvironment {
     abstract static class Settings {
 
         private static String regionKey = "default";
-        private static String envKey = "default";
+        private static String envKey = "FWS";
 
         private static final String INFRASTRUCTURE_CLOUD_REGION_KEY = "INFRASTRUCTURE_CLOUD_REGION_KEY";
         private static final String INFRASTRUCTURE_CLOUD_ENV_KEY = "INFRASTRUCTURE_CLOUD_ENV_KEY";
