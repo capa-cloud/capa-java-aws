@@ -55,6 +55,8 @@ public class AwsCapaHttpTest {
         CompletableFuture<HttpResponse<String>> responseCompletableFuture = awsCapaHttp.invokeSpiApi("appId",
                 "method",
                 "requestData",
+                "POST",
+                new HashMap<>(),
                 new HashMap<>(),
                 TypeRef.STRING,
                 awsRpcServiceOptions);
@@ -71,6 +73,8 @@ public class AwsCapaHttpTest {
             awsCapaHttp.invokeSpiApi("appId",
                     "method",
                     "requestData",
+                    "POST",
+                    new HashMap<>(),
                     new HashMap<>(),
                     TypeRef.STRING,
                     awsRpcServiceOptions);
