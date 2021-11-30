@@ -135,7 +135,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                 .clientId(UUID.randomUUID().toString())
                 .configuration(configurationName)
                 .clientConfigurationVersion(clientConfigurationVersion)
-                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
+                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                 .build();
 
         return Mono.fromFuture(() -> appConfigAsyncClient.getConfiguration(request))
@@ -182,30 +182,30 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return Configuration.EMPTY;
         }
         return Mono.create(monoSink -> {
-            AwsCapaConfigurationScheduler.INSTANCE.configInitScheduler
-                    .schedule(() -> {
-                        String version = getCurVersion(applicationName, configurationName);
+                    AwsCapaConfigurationScheduler.INSTANCE.configInitScheduler
+                            .schedule(() -> {
+                                String version = getCurVersion(applicationName, configurationName);
 
-                        GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                .application(applicationName)
-                                .clientId(UUID.randomUUID().toString())
-                                .configuration(configurationName)
-                                .clientConfigurationVersion(version)
-                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
-                                .build();
+                                GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                        .application(applicationName)
+                                        .clientId(UUID.randomUUID().toString())
+                                        .configuration(configurationName)
+                                        .clientConfigurationVersion(version)
+                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
+                                        .build();
 
-                        GetConfigurationResponse resp = null;
-                        try {
-                            resp = appConfigAsyncClient.getConfiguration(request).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                        }
-                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            Configuration<T> tConfiguration = initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
-                            monoSink.success(tConfiguration);
-                        }
-                    });
-        })
+                                GetConfigurationResponse resp = null;
+                                try {
+                                    resp = appConfigAsyncClient.getConfiguration(request).get();
+                                } catch (InterruptedException | ExecutionException e) {
+                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                                }
+                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                                    Configuration<T> tConfiguration = initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                                    monoSink.success(tConfiguration);
+                                }
+                            });
+                })
                 .map(resp -> (Configuration<T>) resp)
                 .block();
     }
@@ -224,33 +224,33 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return;
         }
         Flux.create(fluxSink -> {
-            AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
-                    .schedulePeriodically(() -> {
-                        String version = getCurVersion(applicationName, configurationName);
+                    AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
+                            .schedulePeriodically(() -> {
+                                String version = getCurVersion(applicationName, configurationName);
 
-                        GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                .application(applicationName)
-                                .clientId(UUID.randomUUID().toString())
-                                .configuration(configurationName)
-                                .clientConfigurationVersion(version)
-                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigEnv())
-                                .build();
+                                GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                        .application(applicationName)
+                                        .clientId(UUID.randomUUID().toString())
+                                        .configuration(configurationName)
+                                        .clientConfigurationVersion(version)
+                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
+                                        .build();
 
-                        GetConfigurationResponse resp = null;
-                        try {
-                            resp = appConfigAsyncClient.getConfiguration(request).get();
-                        } catch (InterruptedException | ExecutionException e) {
-                            LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                        }
-                        // update subscribed status if needs
-                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+                                GetConfigurationResponse resp = null;
+                                try {
+                                    resp = appConfigAsyncClient.getConfiguration(request).get();
+                                } catch (InterruptedException | ExecutionException e) {
+                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                                }
+                                // update subscribed status if needs
+                                getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
 
-                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            fluxSink.next(resp);
-                        }
-                        // todo: make the polling frequency configurable
-                    }, 0, 1, TimeUnit.SECONDS);
-        })
+                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                                    fluxSink.next(resp);
+                                }
+                                // todo: make the polling frequency configurable
+                            }, 0, 1, TimeUnit.SECONDS);
+                })
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(origin -> {
                     GetConfigurationResponse resp = (GetConfigurationResponse) origin;
@@ -268,11 +268,12 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         if (Objects.equals(configuration, Configuration.EMPTY)) {
             return Flux.empty();
         }
-        return Flux.create(fluxSink -> {
-            configuration.addListener(configurationItem -> {
-                fluxSink.next(configurationItem);
-            });
-        })
+        return Flux
+                .create(fluxSink -> {
+                    configuration.addListener(configurationItem -> {
+                        fluxSink.next(configurationItem);
+                    });
+                })
                 .map(resp -> (ConfigurationItem<T>) resp)
                 .map(resp -> convert(resp, appId));
     }

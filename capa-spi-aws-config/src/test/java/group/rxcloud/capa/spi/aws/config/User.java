@@ -20,6 +20,7 @@ package group.rxcloud.capa.spi.aws.config;
  * @author Reckless Xu
  */
 public class User {
+
     private String name;
 
     private Integer age;

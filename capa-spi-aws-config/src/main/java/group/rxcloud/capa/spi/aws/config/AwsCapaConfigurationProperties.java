@@ -16,7 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.config;
 
-import group.rxcloud.capa.infrastructure.config.CapaProperties;
+
+import group.rxcloud.capa.infrastructure.CapaProperties;
 
 import java.util.Properties;
 
@@ -32,27 +33,28 @@ public interface AwsCapaConfigurationProperties {
             private static String awsAppConfigName = "AWS AppConfig";
             private static String awsAppConfigEnv = "ENV";
 
-            private static final String RPC_AWS_APP_CONFIG_NAME = "RPC_AWS_APP_CONFIG_NAME";
-            private static final String RPC_AWS_APP_CONFIG_ENV = "RPC_AWS_APP_CONFIG_ENV";
+            private static final String CONFIGURATION_COMPONENT_STORE_NAME = "CONFIGURATION_COMPONENT_STORE_NAME";
+            private static final String CONFIG_AWS_APP_CONFIG_ENV = "CONFIG_AWS_APP_CONFIG_ENV";
 
             static {
-                Properties properties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration-aws");
+                Properties properties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration");
 
-                awsAppConfigName = properties.getProperty(RPC_AWS_APP_CONFIG_NAME, awsAppConfigName);
+                awsAppConfigName = properties.getProperty(CONFIGURATION_COMPONENT_STORE_NAME, awsAppConfigName);
 
-                awsAppConfigEnv = properties.getProperty(RPC_AWS_APP_CONFIG_ENV, awsAppConfigEnv);
+                Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration-aws");
+
+                awsAppConfigEnv = awsProperties.getProperty(CONFIG_AWS_APP_CONFIG_ENV, awsAppConfigEnv);
             }
 
             public static String getAwsAppConfigName() {
                 return awsAppConfigName;
             }
 
-            public static String getAwsAppConfigEnv() {
+            public static String getConfigAwsAppConfigEnv() {
                 return awsAppConfigEnv;
             }
 
             private Settings() {
-
             }
         }
     }

@@ -18,8 +18,8 @@ package group.rxcloud.capa.spi.aws.mesh.http;
 
 import group.rxcloud.capa.component.http.HttpResponse;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
-import group.rxcloud.capa.spi.aws.mesh.config.AwsRpcServiceOptions;
-import group.rxcloud.capa.spi.aws.mesh.config.AwsSpiOptionsLoader;
+import group.rxcloud.capa.spi.aws.mesh.http.config.AwsRpcServiceOptions;
+import group.rxcloud.capa.spi.aws.mesh.http.config.AwsSpiOptionsLoader;
 import group.rxcloud.capa.spi.aws.mesh.http.serializer.BaijiSSJsonObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import okhttp3.OkHttpClient;
@@ -55,6 +55,8 @@ public class AwsCapaHttpTest {
         CompletableFuture<HttpResponse<String>> responseCompletableFuture = awsCapaHttp.invokeSpiApi("appId",
                 "method",
                 "requestData",
+                "POST",
+                new HashMap<>(),
                 new HashMap<>(),
                 TypeRef.STRING,
                 awsRpcServiceOptions);
@@ -71,6 +73,8 @@ public class AwsCapaHttpTest {
             awsCapaHttp.invokeSpiApi("appId",
                     "method",
                     "requestData",
+                    "POST",
+                    new HashMap<>(),
                     new HashMap<>(),
                     TypeRef.STRING,
                     awsRpcServiceOptions);

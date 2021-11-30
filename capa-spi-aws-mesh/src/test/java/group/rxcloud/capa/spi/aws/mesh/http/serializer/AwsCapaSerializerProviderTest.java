@@ -27,5 +27,4 @@ public class AwsCapaSerializerProviderTest {
         CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
         Assertions.assertEquals("application/bjjson", serializerOrDefault.getContentType());
     }
-
 }

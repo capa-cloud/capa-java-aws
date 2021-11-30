@@ -14,9 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.config;
+package group.rxcloud.capa.spi.aws.mesh.http.config;
 
-import group.rxcloud.capa.infrastructure.env.CapaEnvironment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -24,6 +23,8 @@ public class AwsSpiOptionsLoaderTest {
 
     @Test
     public void testLoadRpcServiceOptions_Success() {
+        System.setProperty("ENV", "FWS");
+
         AwsSpiOptionsLoader awsSpiOptionsLoader = new AwsSpiOptionsLoader();
 
         AwsRpcServiceOptions rpcServiceOptions = awsSpiOptionsLoader.loadRpcServiceOptions("appId");
@@ -35,7 +36,6 @@ public class AwsSpiOptionsLoaderTest {
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
         Assertions.assertEquals("FWS", awsToAwsServiceOptions.getNamespace());
-        Assertions.assertEquals(CapaEnvironment.DeployVpcEnvironment.FWS, awsToAwsServiceOptions.getServiceEnv());
+        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getServiceEnv());
     }
-
 }

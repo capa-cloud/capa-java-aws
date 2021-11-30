@@ -16,7 +16,7 @@
  */
 package group.rxcloud.capa.spi.aws.mesh;
 
-import group.rxcloud.capa.infrastructure.config.CapaProperties;
+import group.rxcloud.capa.infrastructure.CapaProperties;
 import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 
