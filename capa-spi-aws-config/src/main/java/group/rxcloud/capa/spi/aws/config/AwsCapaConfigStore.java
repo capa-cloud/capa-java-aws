@@ -17,6 +17,7 @@
 package group.rxcloud.capa.spi.aws.config;
 
 import com.google.common.collect.Lists;
+import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
@@ -282,7 +283,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         SubscribeResp<T> subscribeResp = new SubscribeResp<>();
         subscribeResp.setItems(Lists.newArrayList(conf));
         subscribeResp.setAppId(appId);
-        subscribeResp.setStoreName(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigName());
+        subscribeResp.setStoreName(CapaConfigurationProperties.Settings.getStoreNames().get(0));
         return subscribeResp;
     }
 
