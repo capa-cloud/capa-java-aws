@@ -74,7 +74,8 @@
         <java.version>8</java.version>
         <file.encoding>UTF-8</file.encoding>
         <maven.version>3.8.1</maven.version>
-        <capa.version>1.0.7-beta-3</capa.version>
+        <capa.version>1.0.8-alpha-1</capa.version>
+        <capa.addons.version>1.0.3-alpha-1</capa.addons.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <junit.version>5.3.1</junit.version>
         <mockito-core.version>3.6.0</mockito-core.version>
@@ -118,6 +119,13 @@
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
                 <version>1.0.4-alpha-1</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-id-generator</artifactId>
+                <version>${capa.addons.version}</version>
             </dependency>
 
             <dependency>
@@ -316,6 +324,7 @@
                         <exclude>**/*.sh</exclude>
                         <exclude>**/*.bat</exclude>
                         <exclude>**/*.md</exclude>
+                        <exclude>**/*.json</exclude>
                         <exclude>.git/</exclude>
                         <exclude>.gitignore</exclude>
                         <!-- ASF jenkins box puts the Maven repo in our root directory. -->

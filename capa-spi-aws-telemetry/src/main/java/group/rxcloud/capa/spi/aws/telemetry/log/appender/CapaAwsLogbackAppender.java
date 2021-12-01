@@ -24,7 +24,7 @@ import io.opentelemetry.api.common.Attributes;
 import java.util.Map;
 
 public class CapaAwsLogbackAppender extends AbstractCapaAwsLogAppender
-        implements CapaLogbackAppenderAgent.CapaLogbackAppender<ILoggingEvent> {
+        implements CapaLogbackAppenderAgent.CapaLogbackAppender {
 
     /**
      * The error type name of the logback appender.

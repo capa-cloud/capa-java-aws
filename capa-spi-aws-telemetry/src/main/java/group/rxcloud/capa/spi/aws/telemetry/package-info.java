@@ -14,4 +14,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh;
+package group.rxcloud.capa.spi.aws.telemetry;

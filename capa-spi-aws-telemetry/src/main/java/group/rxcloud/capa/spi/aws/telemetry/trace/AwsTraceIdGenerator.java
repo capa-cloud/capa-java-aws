@@ -14,4 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh;
+package group.rxcloud.capa.spi.aws.telemetry.trace;
+
+import group.rxcloud.capa.addons.id.generator.TripTraceIdGeneratePolicy;
+import io.opentelemetry.sdk.trace.IdGenerator;
+
+/**
+ * Generate trace id form aws trace log.
+ */
+public class AwsTraceIdGenerator implements IdGenerator {
+
+    @Override
+    public String generateSpanId() {
+        return TripTraceIdGeneratePolicy.generate();
+    }
+
+    @Override
+    public String generateTraceId() {
+        return TripTraceIdGeneratePolicy.generate();
+    }
+}
