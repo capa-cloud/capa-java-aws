@@ -1,0 +1,7 @@
+{
+  "enableIdValidate" : false,
+  "idGenerator": "group.rxcloud.capa.spi.aws.telemetry.trace.AwsTraceIdGenerator",
+  "processors" : [
+    "group.rxcloud.capa.spi.aws.telemetry.trace.LogSpanProcessor"
+  ]
+}
