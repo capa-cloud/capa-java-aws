@@ -16,11 +16,10 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import com.google.common.collect.Lists;
 import group.rxcloud.capa.addons.id.generator.TripTraceIdGeneratePolicy;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
-import group.rxcloud.capa.infrastructure.CapaProperties;
+import group.rxcloud.capa.spi.aws.telemetry.AwsCapaTelemetryProperties;
 import io.opentelemetry.api.internal.ImmutableSpanContext;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
@@ -40,11 +39,9 @@ import java.util.List;
  */
 public class TraceIdRpcContextPropagator implements TextMapPropagator {
 
-    private static final String TRACE_ID_KEY = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("telemetry-common")
-                                                                                           .getProperty("traceIdKey");
+    private static final String TRACE_ID_KEY = AwsCapaTelemetryProperties.Settings.getTelemetryAwsTraceIdKey();
 
-    private static final List<String> FIELDS = Collections.unmodifiableList(Lists
-            .newArrayList(TRACE_ID_KEY));
+    private static final List<String> FIELDS = Collections.singletonList(TRACE_ID_KEY);
 
     private static final TraceIdRpcContextPropagator INSTANCE = new TraceIdRpcContextPropagator();
 

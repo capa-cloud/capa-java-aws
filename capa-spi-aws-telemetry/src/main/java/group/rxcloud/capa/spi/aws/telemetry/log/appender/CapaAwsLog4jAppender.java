@@ -16,7 +16,7 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.log.appender;
 
-import group.rxcloud.capa.component.log.agent.CapaLog4jAppenderAgent;
+import group.rxcloud.capa.component.log.CapaLog4jAppenderAgent;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import org.apache.logging.log4j.core.LogEvent;
@@ -38,7 +38,7 @@ public class CapaAwsLog4jAppender extends AbstractCapaAwsLogAppender
     }
 
     @Override
-    public void appendLog(LogEvent event) {
+    public void append(LogEvent event) {
         try {
             if (event == null
                     || event.getLevel() == null

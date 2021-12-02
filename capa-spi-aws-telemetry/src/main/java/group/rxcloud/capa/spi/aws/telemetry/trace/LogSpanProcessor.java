@@ -104,8 +104,8 @@ public class LogSpanProcessor implements SpanProcessor {
             builder.append(",\n\"events\": [");
             for (EventData l : spanData.getEvents()) {
                 builder.append("\n\t").append("{\n\t\t\"name\": \"").append(l.getName())
-                       .append("\",\n\t\t\"time\": ")
-                       .append(Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(l.getEpochNanos())).toString());
+                        .append("\",\n\t\t\"time\": ")
+                        .append(Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(l.getEpochNanos())).toString());
                 appendAttributes("\t\t", builder, l.getAttributes());
                 if ("exception".equals(l.getName())) {
                     failed = true;

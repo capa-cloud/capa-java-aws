@@ -24,8 +24,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
@@ -36,6 +34,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRe
 import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
+import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.util.Optional;
 
@@ -77,9 +76,9 @@ public class CloudWatchLogsService {
                 .logStreamNamePrefix(APP_ID)
                 .build();
         DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(logStreamsRequest);
-        String sequenceToken = StringUtils.EMPTY;
+        String sequenceToken = "";
         if (describeLogStreamsResponse != null
-                && CollectionUtils.isNotEmpty(describeLogStreamsResponse.logStreams())) {
+                && !CollectionUtils.isNullOrEmpty(describeLogStreamsResponse.logStreams())) {
             sequenceToken = describeLogStreamsResponse.logStreams()
                     .get(0)
                     .uploadSequenceToken();

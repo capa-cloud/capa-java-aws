@@ -17,7 +17,7 @@
 package group.rxcloud.capa.spi.aws.telemetry.log.appender;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import group.rxcloud.capa.component.log.agent.CapaLogbackAppenderAgent;
+import group.rxcloud.capa.component.log.CapaLogbackAppenderAgent;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 
@@ -32,7 +32,7 @@ public class CapaAwsLogbackAppender extends AbstractCapaAwsLogAppender
     protected static final String LOG_LOGBACK_APPENDER_ERROR_TYPE = "LogbackAppendLogsError";
 
     @Override
-    public void appendLog(ILoggingEvent event) {
+    public void append(ILoggingEvent event) {
         try {
             if (event == null || event.getLevel() == null) {
                 return;

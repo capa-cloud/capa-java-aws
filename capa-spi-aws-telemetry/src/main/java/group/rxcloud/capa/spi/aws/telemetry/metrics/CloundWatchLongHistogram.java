@@ -22,6 +22,7 @@ import io.opentelemetry.api.metrics.BoundLongHistogram;
 import io.opentelemetry.context.Context;
 
 /**
+ *
  */
 public class CloundWatchLongHistogram extends CapaLongHistogramSpi implements BoundLongHistogram {
 
@@ -32,7 +33,7 @@ public class CloundWatchLongHistogram extends CapaLongHistogramSpi implements Bo
         super(meterName, schemaUrl, version, name, description, unit);
         if (schemaUrl != null) {
             bind = bind.toBuilder().put("schemaUrl", schemaUrl).build();
-        } 
+        }
         if (version != null) {
             bind = bind.toBuilder().put("version", version).build();
         }
