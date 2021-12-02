@@ -127,7 +127,7 @@ public abstract class AbstractCapaAwsLogAppender {
 
     protected void appendLogs(String message, Map<String, String> MDCTags, String logLevel) {
         if (StringUtils.isBlank(message)) {
-            message = StringUtils.EMPTY;
+            message = "";
         }
         Map<String, String> tags = new HashMap<>();
         tags.put(LOG_LEVEL_NAME, logLevel);
