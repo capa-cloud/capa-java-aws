@@ -14,17 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
+package group.rxcloud.capa.spi.aws.telemetry;
 
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import group.rxcloud.capa.telemetry.CapaTelemetryClientBuilder;
+import group.rxcloud.capa.telemetry.CapaTelemetryClientGlobal;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 
-public class AwsCapaSerializerProviderTest {
+/**
+ */
+public final class ClientHolder {
 
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
+    private static volatile CapaTelemetryClientGlobal instance;
+
+    private ClientHolder() {
     }
+
+    public static CapaTelemetryClientGlobal getOrCreate() {
+        if (instance == null) {
+            synchronized(ClientHolder.class) {
+                if (instance == null) {
+                    instance = (CapaTelemetryClientGlobal)(new CapaTelemetryClientBuilder()).build();
+                    GlobalOpenTelemetry.set(instance);
+                }
+            }
+        }
+
+        return instance;
+    }
+
 }

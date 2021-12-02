@@ -23,7 +23,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.0.4.RELEASE</version>
+        <version>1.0.5.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-config</artifactId>
@@ -51,7 +51,6 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
-
         <!-- power mock -->
         <dependency>
             <groupId>org.powermock</groupId>

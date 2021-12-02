@@ -14,17 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
+package group.rxcloud.capa.spi.aws.telemetry.metrics;
 
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import group.rxcloud.capa.infrastructure.CapaEnvironment;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
-public class AwsCapaSerializerProviderTest {
+/**
+ * Provide the single cloud watch client instance.
+ */
+public final class CloudWatchClientProvider {
 
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
+    private static final CloudWatchClient CLIENT = CloudWatchClient.builder()
+            .region(Region
+                    .of(CapaEnvironment.Provider.getInstance()
+                            .getDeployRegion()))
+            .build();
+
+    private CloudWatchClientProvider() {
+    }
+
+    public static CloudWatchClient get() {
+        return CLIENT;
     }
 }

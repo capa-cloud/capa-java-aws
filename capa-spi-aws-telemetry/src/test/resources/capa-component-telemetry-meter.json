@@ -1,0 +1,9 @@
+{
+  "readers" : [
+    {
+      "name" : "aws-cloudwatch-reader-default",
+      "exportIntervalMillis" : 60000,
+      "exporterType" : "group.rxcloud.capa.spi.aws.telemetry.metrics.CloudWatchMetricsExporter"
+    }
+  ]
+}

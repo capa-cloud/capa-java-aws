@@ -14,17 +14,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
-
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-public class AwsCapaSerializerProviderTest {
-
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
-    }
-}
+package group.rxcloud.capa.spi.aws.telemetry;

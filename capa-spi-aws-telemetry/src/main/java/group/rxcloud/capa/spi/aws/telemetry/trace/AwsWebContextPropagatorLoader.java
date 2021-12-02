@@ -14,17 +14,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
+package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import group.rxcloud.capa.spi.telemetry.ContextPropagatorLoaderSpi;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 
-public class AwsCapaSerializerProviderTest {
+/**
+ * Load ContextPropagator for ctrip.
+ */
+public class AwsWebContextPropagatorLoader extends ContextPropagatorLoaderSpi {
 
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
+    @Override
+    public ContextPropagators load() {
+        return ContextPropagators
+                .create(TextMapPropagator.composite(TraceIdRpcContextPropagator.getInstance()));
     }
 }

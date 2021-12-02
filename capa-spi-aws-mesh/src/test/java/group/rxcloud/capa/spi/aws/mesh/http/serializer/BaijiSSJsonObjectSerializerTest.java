@@ -44,6 +44,6 @@ public class BaijiSSJsonObjectSerializerTest {
     @Test
     public void testGetContentType_Success() {
         String contentType = baijiSSJsonObjectSerializer.getContentType();
-        Assertions.assertEquals("application/bjjson", contentType);
+        Assertions.assertEquals("application/json", contentType);
     }
 }

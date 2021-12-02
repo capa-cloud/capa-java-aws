@@ -14,17 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
+package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import group.rxcloud.capa.addons.id.generator.TripTraceIdGeneratePolicy;
+import io.opentelemetry.sdk.trace.IdGenerator;
 
-public class AwsCapaSerializerProviderTest {
+/**
+ * Generate trace id form aws trace log.
+ */
+public class AwsTraceIdGenerator implements IdGenerator {
 
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
+    @Override
+    public String generateSpanId() {
+        return TripTraceIdGeneratePolicy.generate();
+    }
+
+    @Override
+    public String generateTraceId() {
+        return TripTraceIdGeneratePolicy.generate();
     }
 }

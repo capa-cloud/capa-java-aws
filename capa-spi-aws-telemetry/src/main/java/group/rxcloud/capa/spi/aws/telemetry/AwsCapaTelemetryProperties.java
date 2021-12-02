@@ -14,17 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.mesh.http.serializer;
+package group.rxcloud.capa.spi.aws.telemetry;
 
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
-public class AwsCapaSerializerProviderTest {
+import group.rxcloud.capa.infrastructure.CapaProperties;
 
-    @Test
-    public void testGetSerializerOrDefault_Success() {
-        CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
+import java.util.Properties;
+
+public interface AwsCapaTelemetryProperties {
+
+    abstract class Settings {
+
+        private static String awsTraceId = "";
+
+        private static final String TELEMETRY_AWS_TRACE_ID_KEY = "TELEMETRY_AWS_TRACE_ID_KEY";
+
+        static {
+            Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("telemetry-aws");
+
+            awsTraceId = awsProperties.getProperty(TELEMETRY_AWS_TRACE_ID_KEY, awsTraceId);
+        }
+
+        public static String getTelemetryAwsTraceIdKey() {
+            return awsTraceId;
+        }
+
+        private Settings() {
+        }
     }
 }
