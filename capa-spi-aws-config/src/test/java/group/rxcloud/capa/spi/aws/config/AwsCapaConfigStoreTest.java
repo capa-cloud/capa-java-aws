@@ -17,6 +17,7 @@
 package group.rxcloud.capa.spi.aws.config;
 
 import com.google.common.collect.Lists;
+import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
@@ -62,7 +63,7 @@ class AwsCapaConfigStoreTest {
     public void setUp() {
         ins = new AwsCapaConfigStore(new DefaultObjectSerializer());
         StoreConfig storeConfig = new StoreConfig();
-        storeConfig.setStoreName(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getAwsAppConfigName());
+        storeConfig.setStoreName(CapaConfigurationProperties.Settings.getStoreNames().get(0));
 
         AppConfigAsyncClient client = PowerMockito.mock(AppConfigAsyncClient.class);
         Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
@@ -124,7 +125,7 @@ class AwsCapaConfigStoreTest {
         SubscribeResp<User> userSubscribeResp = subscribeRespFlux.blockFirst();
         Assertions.assertNotNull(userSubscribeResp);
         Assertions.assertEquals("100012345", userSubscribeResp.getAppId());
-        Assertions.assertEquals("AWS AppConfig", userSubscribeResp.getStoreName());
+        Assertions.assertEquals("aws.appconfig", userSubscribeResp.getStoreName());
         Assertions.assertEquals("test.json", userSubscribeResp.getItems().get(0).getKey());
         Assertions.assertEquals("reckless", userSubscribeResp.getItems().get(0).getContent().getName());
         Assertions.assertEquals(new Integer(28), userSubscribeResp.getItems().get(0).getContent().getAge());
@@ -196,7 +197,7 @@ class AwsCapaConfigStoreTest {
         SubscribeResp<User> userSubscribeResp = subscribeRespFlux.skip(1L).blockFirst();
         Assertions.assertNotNull(userSubscribeResp);
         Assertions.assertEquals("100012345", userSubscribeResp.getAppId());
-        Assertions.assertEquals("AWS AppConfig", userSubscribeResp.getStoreName());
+        Assertions.assertEquals("aws.appconfig", userSubscribeResp.getStoreName());
         Assertions.assertEquals("test.json", userSubscribeResp.getItems().get(0).getKey());
         Assertions.assertEquals("reckless", userSubscribeResp.getItems().get(0).getContent().getName());
         Assertions.assertEquals(new Integer(28), userSubscribeResp.getItems().get(0).getContent().getAge());
