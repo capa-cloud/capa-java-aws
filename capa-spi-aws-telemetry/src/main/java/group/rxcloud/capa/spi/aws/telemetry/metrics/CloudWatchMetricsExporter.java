@@ -122,7 +122,6 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         return metricsMapGroupByNamespace;
     }
 
-
     static void recordHistogram(String namespace, String metricName, Attributes attributes, double data) {
         METRICS_CACHE.recordHistogram(namespace, metricName, attributes, data);
     }

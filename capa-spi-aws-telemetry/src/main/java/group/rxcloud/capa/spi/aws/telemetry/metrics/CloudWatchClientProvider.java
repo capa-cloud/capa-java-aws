@@ -25,7 +25,6 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
  */
 public final class CloudWatchClientProvider {
 
-
     private static final CloudWatchClient CLIENT = CloudWatchClient.builder()
                                                                    .region(Region.AP_SOUTH_1)
                                                                    .region(Region

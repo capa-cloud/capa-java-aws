@@ -41,6 +41,9 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 
+/**
+ * The Aws capa http.
+ */
 public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
     private static final Logger logger = LoggerFactory.getLogger(AwsCapaHttp.class);
@@ -71,7 +74,8 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                 method,
                 requestData,
                 httpMethod,
-                headers, urlParameters,
+                headers,
+                urlParameters,
                 type,
                 (AwsRpcServiceOptions) rpcServiceOptions);
     }
@@ -85,7 +89,9 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
          * @param appId             the app id
          * @param method            the method
          * @param requestData       the request data
+         * @param httpMethod        the http method
          * @param headers           the headers
+         * @param urlParameters     the url parameters
          * @param type              the response type
          * @param rpcServiceOptions the rpc service options
          * @return the async completable future

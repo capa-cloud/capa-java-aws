@@ -40,6 +40,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRespo
 import java.util.Optional;
 
 public class CloudWatchLogsService {
+
     private static final CloudWatchLogsClient CLOUD_WATCH_LOGS_CLIENT;
     private static final String APP_ID;
     private static final String APPLICATION_ENV;
