@@ -91,14 +91,17 @@ public class LogSpanProcessor implements SpanProcessor {
 
         StringBuilder builder = addBasicTags(spanData);
         appendAttributes("", builder, spanData.getAttributes());
+        builder.append(",\n\"startNanos\": ").append(spanData.getStartEpochNanos());
+        builder.append(",\n\"endNanos\": ").append(spanData.getEndEpochNanos());
+        builder.append(",\n\"latencyNanos\": ").append(spanData.getEndEpochNanos() - spanData.getStartEpochNanos());
         if (!spanData.getLinks().isEmpty()) {
-            builder.append(",\n\"links\" = [");
+            builder.append(",\n\"links\": [");
             spanData.getLinks().forEach(l -> builder.append("\n\t").append(l).append(','));
             builder.deleteCharAt(builder.length() - 1);
             builder.append("\n]");
         }
         if (!spanData.getEvents().isEmpty()) {
-            builder.append(",\n\"events\" = [");
+            builder.append(",\n\"events\": [");
             for (EventData l : spanData.getEvents()) {
                 builder.append("\n\t").append("{\n\t\t\"name\": \"").append(l.getName())
                        .append("\",\n\t\t\"time\": ")

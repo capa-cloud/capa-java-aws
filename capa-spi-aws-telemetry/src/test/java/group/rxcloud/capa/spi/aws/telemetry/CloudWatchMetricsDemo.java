@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry;
 
-import group.rxcloud.capa.telemetry.CapaTelemetryClientGlobal;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.BoundDoubleHistogram;
@@ -30,8 +29,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +45,7 @@ public class CloudWatchMetricsDemo {
 
     //@Test
     public void trace() {
-        Tracer tracer = CapaTelemetryClientGlobal.getOrCreate().buildTracer("capa").block();
+        Tracer tracer = ClientHolder.getOrCreate().buildTracer("capa").block();
         Span rootSpan = tracer.spanBuilder("rootSpan")
                               .setSpanKind(SpanKind.SERVER)
                               .setAttribute("type", "root")
@@ -64,11 +61,10 @@ public class CloudWatchMetricsDemo {
         subSpan.end();
     }
 
-    @Test
+    //@Test
     public void metrics() throws InterruptedException {
         // init client.
-
-        Meter meter = CapaTelemetryClientGlobal.getOrCreate().buildMeter("capa").block();
+        Meter meter = ClientHolder.getOrCreate().buildMeter("capa").block();
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         // gauge
