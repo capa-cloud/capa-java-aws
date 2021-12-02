@@ -25,6 +25,6 @@ public class AwsCapaSerializerProviderTest {
     @Test
     public void testGetSerializerOrDefault_Success() {
         CapaObjectSerializer serializerOrDefault = AwsCapaSerializerProvider.getSerializerOrDefault(null);
-        Assertions.assertEquals("application/bjjson", serializerOrDefault.getContentType());
+        Assertions.assertEquals("application/json", serializerOrDefault.getContentType());
     }
 }

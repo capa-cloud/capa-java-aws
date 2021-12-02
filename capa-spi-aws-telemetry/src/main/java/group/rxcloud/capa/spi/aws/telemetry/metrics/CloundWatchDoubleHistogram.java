@@ -36,7 +36,6 @@ public class CloundWatchDoubleHistogram extends CapaDoubleHistogramSpi implement
         if (version != null) {
             bind = bind.toBuilder().put("version", version).build();
         }
-
     }
 
     @Override

@@ -69,6 +69,6 @@ public class BaijiSSJsonObjectSerializer implements CapaObjectSerializer {
      */
     @Override
     public String getContentType() {
-        return "application/bjjson";
+        return SERIALIZER.contentType();
     }
 }

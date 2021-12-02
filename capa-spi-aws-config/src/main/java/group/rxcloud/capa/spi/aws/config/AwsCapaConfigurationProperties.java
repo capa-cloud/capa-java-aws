@@ -30,24 +30,14 @@ public interface AwsCapaConfigurationProperties {
 
         abstract class Settings {
 
-            private static String awsAppConfigName = "AWS AppConfig";
             private static String awsAppConfigEnv = "ENV";
 
-            private static final String CONFIGURATION_COMPONENT_STORE_NAME = "CONFIGURATION_COMPONENT_STORE_NAME";
             private static final String CONFIG_AWS_APP_CONFIG_ENV = "CONFIG_AWS_APP_CONFIG_ENV";
 
             static {
-                Properties properties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration");
-
-                awsAppConfigName = properties.getProperty(CONFIGURATION_COMPONENT_STORE_NAME, awsAppConfigName);
-
                 Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration-aws");
 
                 awsAppConfigEnv = awsProperties.getProperty(CONFIG_AWS_APP_CONFIG_ENV, awsAppConfigEnv);
-            }
-
-            public static String getAwsAppConfigName() {
-                return awsAppConfigName;
             }
 
             public static String getConfigAwsAppConfigEnv() {

@@ -36,7 +36,6 @@ public class CloundWatchLongHistogram extends CapaLongHistogramSpi implements Bo
         if (version != null) {
             bind = bind.toBuilder().put("version", version).build();
         }
-
     }
 
     @Override
