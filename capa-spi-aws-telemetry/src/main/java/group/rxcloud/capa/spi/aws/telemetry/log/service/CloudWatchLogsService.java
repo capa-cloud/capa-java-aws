@@ -34,9 +34,12 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsRes
 import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
 import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
+import software.amazon.awssdk.services.cloudwatchlogs.model.LogGroup;
+import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
 
+import java.util.List;
 import java.util.Optional;
 
 public class CloudWatchLogsService {
@@ -57,8 +60,7 @@ public class CloudWatchLogsService {
     static {
         APP_ID = buildAppId();
         APPLICATION_ENV = buildApplicationEnv();
-        CLOUD_WATCH_LOGS_CLIENT = CloudWatchLogsClient.builder()
-                .build();
+        CLOUD_WATCH_LOGS_CLIENT = CloudWatchLogsClient.builder().build();
         createLogGroup();
         createLogStream();
         TELEMETRY_HOOKS = Mixer.telemetryHooksNullable();
@@ -120,13 +122,23 @@ public class CloudWatchLogsService {
     }
 
     private static void createLogGroup() {
-        //Describe log group to confirm whether the log group has been created.
+        //Describe log group to confirm whether the log group has been created..
         DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()
                 .logGroupNamePrefix(APPLICATION_ENV)
                 .build();
         DescribeLogGroupsResponse describeLogGroupsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogGroups(describeLogGroupsRequest);
         // If the log group is not created, then create the log group.
-        if (!describeLogGroupsResponse.hasLogGroups()) {
+        List<LogGroup> logGroups = describeLogGroupsResponse.logGroups();
+        Boolean hasLogGroup = Boolean.FALSE;
+        if (CollectionUtils.isNotEmpty(logGroups)) {
+            Optional<LogGroup> logGroupOptional = logGroups.stream()
+                    .filter(logGroup -> APPLICATION_ENV.equalsIgnoreCase(logGroup.logGroupName()))
+                    .findAny();
+            if (logGroupOptional.isPresent()) {
+                hasLogGroup = Boolean.TRUE;
+            }
+        }
+        if (!describeLogGroupsResponse.hasLogGroups() || !hasLogGroup) {
             CreateLogGroupRequest createLogGroupRequest = CreateLogGroupRequest.builder()
                     .logGroupName(APPLICATION_ENV)
                     .build();
@@ -135,13 +147,25 @@ public class CloudWatchLogsService {
     }
 
     private static void createLogStream() {
+
         //Describe log stream to confirm whether the log stream has been created.
         DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()
                 .logGroupName(APPLICATION_ENV)
                 .logStreamNamePrefix(APP_ID)
                 .build();
         DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(describeLogStreamsRequest);
-        if (!describeLogStreamsResponse.hasLogStreams()) {
+        // If the log stream is not created, then create the log stream.
+        List<LogStream> logStreams = describeLogStreamsResponse.logStreams();
+        Boolean hasLogStream = Boolean.FALSE;
+        if (CollectionUtils.isNotEmpty(logStreams)) {
+            Optional<LogStream> logStreamOptional = logStreams.stream()
+                    .filter(logStream -> APP_ID.equalsIgnoreCase(logStream.logStreamName()))
+                    .findAny();
+            if (logStreamOptional.isPresent()) {
+                hasLogStream = Boolean.TRUE;
+            }
+        }
+        if (!describeLogStreamsResponse.hasLogStreams() || !hasLogStream) {
             CreateLogStreamRequest createLogStreamRequest = CreateLogStreamRequest.builder()
                     .logGroupName(APPLICATION_ENV)
                     .logStreamName(APP_ID)
