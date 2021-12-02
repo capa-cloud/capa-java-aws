@@ -23,6 +23,9 @@ import io.opentelemetry.api.common.Attributes;
 
 import java.util.Map;
 
+/**
+ * TODO please move log to log module, not telemetry module
+ */
 public class CapaAwsLogbackAppender extends AbstractCapaAwsLogAppender
         implements CapaLogbackAppenderAgent.CapaLogbackAppender {
 

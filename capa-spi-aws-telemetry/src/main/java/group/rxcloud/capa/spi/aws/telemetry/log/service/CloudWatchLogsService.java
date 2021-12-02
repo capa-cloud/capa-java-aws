@@ -38,6 +38,9 @@ import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.util.Optional;
 
+/**
+ * TODO please move log to log module, not telemetry module
+ */
 public class CloudWatchLogsService {
 
     private static final CloudWatchLogsClient CLOUD_WATCH_LOGS_CLIENT;

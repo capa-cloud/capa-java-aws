@@ -26,6 +26,9 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * TODO please move log to log module, not telemetry module
+ */
 public class CapaAwsLog4jAppender extends AbstractCapaAwsLogAppender
         implements CapaLog4jAppenderAgent.CapaLog4jAppender {
     /**

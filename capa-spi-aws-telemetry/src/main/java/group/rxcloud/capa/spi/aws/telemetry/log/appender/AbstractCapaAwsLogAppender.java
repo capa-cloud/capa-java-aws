@@ -31,6 +31,8 @@ import java.util.Optional;
 
 /**
  * The abstract capa aws log appender.
+ * <p>
+ * TODO please move log to log module, not telemetry module
  */
 public abstract class AbstractCapaAwsLogAppender {
 
