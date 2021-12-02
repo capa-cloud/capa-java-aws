@@ -160,6 +160,10 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                      String serviceId,
                                                                      String namespace,
                                                                      int servicePort) {
+            serviceId = serviceId.toLowerCase();
+            namespace = namespace.toLowerCase();
+            method = method.toLowerCase();
+
             // generate app mesh http url
             final String appMeshHttpUrl = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshTemplate()
                     .replace("{serviceId}", serviceId)

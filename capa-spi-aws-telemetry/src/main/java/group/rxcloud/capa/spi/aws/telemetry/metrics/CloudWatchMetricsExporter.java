@@ -180,7 +180,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                                                                .namespace(namespace)
                                                                .metricData(data).build();
             PutMetricDataResponse response = CloudWatchClientProvider.get().putMetricData(request);
-            if (response.sdkHttpResponse().isSuccessful()) {
+            if (!response.sdkHttpResponse().isSuccessful()) {
                 log.info("Fail to export metrics to cloud watch. statusCode={}, msg={}.",
                         response.sdkHttpResponse().statusCode(), response.sdkHttpResponse().statusText().orElse(""));
             }
