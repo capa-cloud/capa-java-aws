@@ -14,28 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.log.appender;
+package group.rxcloud.capa.spi.aws.log.manager;
 
 import com.google.gson.Gson;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
-import group.rxcloud.capa.spi.aws.telemetry.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.utils.StringUtils;
+import  group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * The abstract capa aws log appender.
- * <p>
- * TODO please move log to log module, not telemetry module
- */
-public abstract class AbstractCapaAwsLogAppender {
-
+public class LogAppendManager {
     /**
      * Tag identifier prefix.
      */
@@ -93,7 +87,7 @@ public abstract class AbstractCapaAwsLogAppender {
         });
     }
 
-    protected Map<String, String> parseTags(String message, int tagsEndIndex) {
+    protected static Map<String, String> parseTags(String message, int tagsEndIndex) {
         Map<String, String> tags = null;
         int tagStart = 2;
         while (tagStart < tagsEndIndex) {
@@ -115,7 +109,7 @@ public abstract class AbstractCapaAwsLogAppender {
         return tags;
     }
 
-    protected Map<String, String> appendMDCTags(Map<String, String> tags, Map<String, String> MDCTags) {
+    protected static Map<String, String> appendMDCTags(Map<String, String> tags, Map<String, String> MDCTags) {
         if (MDCTags != null && !MDCTags.isEmpty()) {
             if (tags == null) {
                 return new HashMap<String, String>(MDCTags);
@@ -127,7 +121,7 @@ public abstract class AbstractCapaAwsLogAppender {
         return tags;
     }
 
-    protected void appendLogs(String message, Map<String, String> MDCTags, String logLevel) {
+    public static void appendLogs(String message, Map<String, String> MDCTags, String logLevel) {
         if (StringUtils.isBlank(message)) {
             message = "";
         }
@@ -136,7 +130,7 @@ public abstract class AbstractCapaAwsLogAppender {
         if (message.startsWith(TAG_PREFIX)) {
             int tagsEndIndex = message.indexOf(TAG_SUFFIX);
             if (tagsEndIndex > 0) {
-                tags = this.parseTags(message, tagsEndIndex);
+                tags = parseTags(message, tagsEndIndex);
                 if (tags != null) {
                     message = message.substring(tagsEndIndex + 2);
                 }
@@ -151,7 +145,7 @@ public abstract class AbstractCapaAwsLogAppender {
         if (tags != null && !tags.isEmpty()) {
             logMessageMap.putAll(tags);
         }
-        Map<String, String> defaultTags = this.getDefaultTags();
+        Map<String, String> defaultTags = getDefaultTags();
         if (defaultTags != null && !defaultTags.isEmpty()) {
             logMessageMap.putAll(defaultTags);
         }
@@ -162,7 +156,7 @@ public abstract class AbstractCapaAwsLogAppender {
         }
     }
 
-    protected Map<String, String> getDefaultTags() {
+    protected static Map<String, String> getDefaultTags() {
         Map<String, String> defaultTags = new HashMap<>();
         // traceId
         if (StringUtils.isNotBlank(CapaContext.getTraceId())) {

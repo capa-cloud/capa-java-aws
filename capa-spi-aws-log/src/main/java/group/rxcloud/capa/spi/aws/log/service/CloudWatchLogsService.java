@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.log.service;
+package group.rxcloud.capa.spi.aws.log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
@@ -41,9 +41,6 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * TODO please move log to log module, not telemetry module
- */
 public class CloudWatchLogsService {
 
     private static final CloudWatchLogsClient CLOUD_WATCH_LOGS_CLIENT;
@@ -105,13 +102,17 @@ public class CloudWatchLogsService {
         if (putLogEventsResponse == null
                 || putLogEventsResponse.sdkHttpResponse() == null
                 || !putLogEventsResponse.sdkHttpResponse().isSuccessful()) {
-            String statusCode = putLogEventsResponse == null || putLogEventsResponse.sdkHttpResponse() == null
-                    ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
-                    : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
-            LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), statusCode))
-                        .add(COUNTER_NUM);
-            });
+            try {
+                //Enhance function without affecting function
+                String statusCode = putLogEventsResponse == null || putLogEventsResponse.sdkHttpResponse() == null
+                        ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
+                        : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
+                LONG_COUNTER.ifPresent(longCounter -> {
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), statusCode))
+                            .add(COUNTER_NUM);
+                });
+            } finally {
+            }
         }
     }
 

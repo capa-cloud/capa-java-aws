@@ -68,6 +68,7 @@
         <module>capa-spi-aws-config</module>
         <module>capa-spi-aws-telemetry</module>
         <module>capa-spi-aws-infrastructure</module>
+        <module>capa-spi-aws-log</module>
     </modules>
 
     <properties>
