@@ -14,36 +14,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package log.appender;
+package group.rxcloud.capa.spi.aws.log.appender;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import group.rxcloud.capa.component.log.CapaLogbackAppenderAgent;
+import group.rxcloud.capa.infrastructure.hook.Mixer;
+import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
+import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
+import group.rxcloud.capa.spi.log.CapaLogbackAppenderSpi;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
 
 import java.util.Map;
+import java.util.Optional;
 
-public class CapaAwsLogbackAppender extends AbstractCapaAwsLogAppender
-        implements CapaLogbackAppenderAgent.CapaLogbackAppender {
+public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
 
     /**
      * The error type name of the logback appender.
      */
     protected static final String LOG_LOGBACK_APPENDER_ERROR_TYPE = "LogbackAppendLogsError";
 
+    /**
+     * Number of counts each time.
+     */
+    protected static final Integer COUNTER_NUM = 1;
+    /**
+     * The instance of the {@link TelemetryHooks}.
+     */
+    private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
+    /**
+     * The namespace for logging error.
+     * TODO Set variables to common variables
+     */
+    private static final String LOG_ERROR_NAMESPACE = "CloudWatchLogs";
+    /**
+     * The metric name for logging error.
+     * TODO Set variables to common variables
+     */
+    private static final String LOG_ERROR_METRIC_NAME = "LogError";
+    /**
+     * Init an instance of {@link LongCounter}.
+     */
+    protected static Optional<LongCounter> LONG_COUNTER = Optional.empty();
+
+    static {
+        TELEMETRY_HOOKS = Mixer.telemetryHooksNullable();
+        TELEMETRY_HOOKS.ifPresent(telemetryHooks -> {
+            Meter meter = telemetryHooks.buildMeter(LOG_ERROR_NAMESPACE).block();
+            LongCounter longCounter = meter.counterBuilder(LOG_ERROR_METRIC_NAME).build();
+            LONG_COUNTER = Optional.ofNullable(longCounter);
+        });
+    }
+
     @Override
-    public void append(ILoggingEvent event) {
+    public void appendLog(ILoggingEvent event) {
         try {
             if (event == null || event.getLevel() == null) {
                 return;
             }
             String message = event.getFormattedMessage();
             Map<String, String> MDCTags = event.getMDCPropertyMap();
-            super.appendLogs(message, MDCTags, event.getLevel().levelStr);
+            LogAppendManager.appendLogs(message, MDCTags, event.getLevel().levelStr);
         } catch (Exception e) {
             LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), e.getMessage()))
-                        .add(COUNTER_NUM);
+                try {
+                    //Enhance function without affecting function
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), e.getMessage()))
+                            .add(COUNTER_NUM);
+                } finally {
+                }
             });
         }
     }
