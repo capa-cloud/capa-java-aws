@@ -133,7 +133,7 @@ public class CloudWatchLogsService {
             // If the log group is not created, then create the log group.
             List<LogGroup> logGroups = describeLogGroupsResponse.logGroups();
             Boolean hasLogGroup = Boolean.FALSE;
-            if (CollectionUtils.isNotEmpty(logGroups)) {
+            if (!CollectionUtils.isNullOrEmpty(logGroups)) {
                 Optional<LogGroup> logGroupOptional = logGroups.stream()
                         .filter(logGroup -> APPLICATION_ENV.equalsIgnoreCase(logGroup.logGroupName()))
                         .findAny();
@@ -163,7 +163,7 @@ public class CloudWatchLogsService {
             // If the log stream is not created, then create the log stream.
             List<LogStream> logStreams = describeLogStreamsResponse.logStreams();
             Boolean hasLogStream = Boolean.FALSE;
-            if (CollectionUtils.isNotEmpty(logStreams)) {
+            if (!CollectionUtils.isNullOrEmpty(logStreams)) {
                 Optional<LogStream> logStreamOptional = logStreams.stream()
                         .filter(logStream -> APP_ID.equalsIgnoreCase(logStream.logStreamName()))
                         .findAny();
