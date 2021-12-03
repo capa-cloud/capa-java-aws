@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.log.service;
+package log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
@@ -25,25 +25,12 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
-import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsResponse;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
-import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
-import software.amazon.awssdk.services.cloudwatchlogs.model.LogGroup;
-import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
+import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
 
-/**
- * TODO please move log to log module, not telemetry module
- */
 public class CloudWatchLogsService {
 
     private static final CloudWatchLogsClient CLOUD_WATCH_LOGS_CLIENT;

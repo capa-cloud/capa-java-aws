@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.log.appender;
+package log.appender;
 
 import group.rxcloud.capa.component.log.CapaLog4jAppenderAgent;
 import io.opentelemetry.api.common.AttributeKey;
@@ -26,9 +26,7 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * TODO please move log to log module, not telemetry module
- */
+
 public class CapaAwsLog4jAppender extends AbstractCapaAwsLogAppender
         implements CapaLog4jAppenderAgent.CapaLog4jAppender {
     /**
