@@ -21,6 +21,8 @@ import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
+import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
+import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
 import group.rxcloud.capa.spi.aws.config.entity.Configuration;
 import group.rxcloud.capa.spi.aws.config.scheduler.AwsCapaConfigurationScheduler;
@@ -33,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.appconfig.AppConfigAsyncClient;
+import software.amazon.awssdk.services.appconfig.model.BadRequestException;
 import software.amazon.awssdk.services.appconfig.model.GetConfigurationRequest;
 import software.amazon.awssdk.services.appconfig.model.GetConfigurationResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -46,6 +49,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static group.rxcloud.capa.spi.aws.config.constants.AwsConfigConstants.REQUEST_TIMEOUT_IN_SECONDS;
 
 
 /**
@@ -103,57 +109,42 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         // no need
     }
 
+    /**
+     * direct get current config from server
+     *
+     * @param appId    appId
+     * @param group    group
+     * @param label    label
+     * @param keys     configurationName list
+     * @param metadata metadata
+     * @param type     type
+     * @param <T>      T
+     * @return config value or throw exception if cannot get config in specific time.
+     * Exception contains e.g. {@link BadRequestException},{@link TimeoutException} and so on.
+     */
     @Override
     protected <T> Mono<List<ConfigurationItem<T>>> doGet(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
         List<ConfigurationItem<T>> items = new ArrayList<>();
         if (CollectionUtils.isNullOrEmpty(keys)) {
-            return Mono.error(new IllegalArgumentException("keys is null or empty"));
+            LOGGER.warn("keys is null or empty,appId:{}", appId);
+            return Mono.error(new CapaException(CapaErrorContext.PARAMETER_ERROR, "keys is null or empty"));
         }
         // todo:need to get the specific env from system properties
         String applicationName = appId + "_FAT";
         String configurationName = keys.get(0);
-        /*
-            check whether the config file has been initialized before
-            the function of if here is to first check init status to rough filter
-         */
-        if (!isInitialized(applicationName, configurationName)) {
-            /*
-            return Configuration.EMPTY if has been initialized before by others,
-            or return configuration which initialized just now.
-             */
-            Configuration<T> initConfiguration = initConfig(applicationName, configurationName, group, label, metadata, type);
-            if (!Objects.equals(initConfiguration, Configuration.EMPTY)) {
-                //init just now and the config value is the latest value,return immediately
-                return Mono.just(Lists.newArrayList(initConfiguration.getConfigurationItem()));
-            }
-        }
-
-        //has been initialized before, and need to get the latest value
-        String clientConfigurationVersion = getCurVersion(applicationName, configurationName);
 
         GetConfigurationRequest request = GetConfigurationRequest.builder()
                 .application(applicationName)
                 .clientId(UUID.randomUUID().toString())
                 .configuration(configurationName)
-                .clientConfigurationVersion(clientConfigurationVersion)
                 .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                 .build();
 
-        return Mono.fromFuture(() -> appConfigAsyncClient.getConfiguration(request))
-                .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
-                .map(resp -> {
-                    // if version doesn't change, get from versionMap
-                    if (Objects.equals(clientConfigurationVersion, resp.configurationVersion())) {
-                        items.add((ConfigurationItem<T>) getCurConfigurationItem(applicationName, configurationName));
-                    } else {
-                        // if version changes,update versionMap and return
-                        Configuration<T> tConfiguration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
-                        if (tConfiguration != null) {
-                            items.add(tConfiguration.getConfigurationItem());
-                        }
-                    }
-                    return items;
-                });
+        return Mono.fromCallable(() -> {
+            GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+            return convertToConfigurationList(response, configurationName, type);
+        })
+                .doOnError(e -> LOGGER.error("[getConfiguration] error occurs when getconfiguration, request:{}", request, e));
     }
 
     @Override
@@ -180,34 +171,28 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     private synchronized <T> Configuration<T> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
         // double check whether has been initialized
         if (isInitialized(applicationName, configurationName)) {
+            LOGGER.info("[initConfig] config has been initialized before,applicationName:{},configurationName:{}", applicationName, configurationName);
             return Configuration.EMPTY;
         }
-        return Mono.create(monoSink -> {
-                    AwsCapaConfigurationScheduler.INSTANCE.configInitScheduler
-                            .schedule(() -> {
-                                String version = getCurVersion(applicationName, configurationName);
+        String version = getCurVersion(applicationName, configurationName);
 
-                                GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                        .application(applicationName)
-                                        .clientId(UUID.randomUUID().toString())
-                                        .configuration(configurationName)
-                                        .clientConfigurationVersion(version)
-                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
-                                        .build();
+        GetConfigurationRequest request = GetConfigurationRequest.builder()
+                .application(applicationName)
+                .clientId(UUID.randomUUID().toString())
+                .configuration(configurationName)
+                .clientConfigurationVersion(version)
+                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
+                .build();
 
-                                GetConfigurationResponse resp = null;
-                                try {
-                                    resp = appConfigAsyncClient.getConfiguration(request).get();
-                                } catch (InterruptedException | ExecutionException e) {
-                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                                }
-                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                                    Configuration<T> tConfiguration = initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
-                                    monoSink.success(tConfiguration);
-                                }
-                            });
-                })
-                .map(resp -> (Configuration<T>) resp)
+        LOGGER.info("[initConfig] call getconfiguration in init process,request:{}", request);
+
+        return Mono.fromCallable(() -> {
+            GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+            LOGGER.info("[initConfig] call getconfiguration in init process,response:{}", response);
+            return response;
+        })
+                .doOnError(e -> LOGGER.error("[initConfig] error occurs when getconfiguration in init process, request:{}", request, e))
+                .map(resp -> initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion()))
                 .block();
     }
 
@@ -225,41 +210,48 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return;
         }
         Flux.create(fluxSink -> {
-                    AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
-                            .schedulePeriodically(() -> {
-                                String version = getCurVersion(applicationName, configurationName);
+            AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
+                    .schedulePeriodically(() -> {
 
-                                GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                        .application(applicationName)
-                                        .clientId(UUID.randomUUID().toString())
-                                        .configuration(configurationName)
-                                        .clientConfigurationVersion(version)
-                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
-                                        .build();
+                        // update subscribed status if needs
+                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
 
-                                GetConfigurationResponse resp = null;
-                                try {
-                                    resp = appConfigAsyncClient.getConfiguration(request).get();
-                                } catch (InterruptedException | ExecutionException e) {
-                                    LOGGER.error("error occurs when getConfiguration,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                                }
-                                // update subscribed status if needs
-                                getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+                        String version = getCurVersion(applicationName, configurationName);
 
-                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                                    fluxSink.next(resp);
-                                }
-                                // todo: make the polling frequency configurable
-                            }, 0, 1, TimeUnit.SECONDS);
-                })
+                        GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                .application(applicationName)
+                                .clientId(UUID.randomUUID().toString())
+                                .configuration(configurationName)
+                                .clientConfigurationVersion(version)
+                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
+                                .build();
+                        LOGGER.info("[subscribePolling] subscribe polling task start,request:{}", request);
+
+                        GetConfigurationResponse resp = null;
+                        try {
+                            resp = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                            //catch error,log error and not trigger listeners
+                            LOGGER.error("[subscribePolling] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                        }
+
+                        LOGGER.info("[subscribePolling] subscribe polling task end,response:{}", resp);
+
+                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                            fluxSink.next(resp);
+                        }
+                        // todo: make the polling frequency configurable
+                    }, 0, 5, TimeUnit.SECONDS);
+        })
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(origin -> {
                     GetConfigurationResponse resp = (GetConfigurationResponse) origin;
-                    Configuration configuration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
+                    Configuration<T> configuration = updateConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion());
                     return configuration == null ? Configuration.EMPTY : configuration;
                 })
                 .filter(resp -> resp != Configuration.EMPTY)
                 .subscribe(resp -> {
+                    LOGGER.info("[triggerListener] receive changes and trigger listeners,response:{}", resp);
                     resp.triggers(resp.getConfigurationItem());
                 });
     }
@@ -272,14 +264,15 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         return Flux
                 .create(fluxSink -> {
                     configuration.addListener(configurationItem -> {
+                        LOGGER.info("[listenerOnChange] listener onChanges, configurationItem:{}", configurationItem);
                         fluxSink.next(configurationItem);
                     });
                 })
                 .map(resp -> (ConfigurationItem<T>) resp)
-                .map(resp -> convert(resp, appId));
+                .map(resp -> convertToSubscribeResp(resp, appId));
     }
 
-    private <T> SubscribeResp<T> convert(ConfigurationItem<T> conf, String appId) {
+    private <T> SubscribeResp<T> convertToSubscribeResp(ConfigurationItem<T> conf, String appId) {
         SubscribeResp<T> subscribeResp = new SubscribeResp<>();
         subscribeResp.setItems(Lists.newArrayList(conf));
         subscribeResp.setAppId(appId);
@@ -302,15 +295,6 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             version = configVersionMap.get(configurationName).getClientConfigurationVersion();
         }
         return version;
-    }
-
-    private ConfigurationItem<?> getCurConfigurationItem(String applicationName, String configuration) {
-        ConfigurationItem<?> configurationItem = null;
-        ConcurrentHashMap<String, Configuration<?>> configMap = versionMap.get(applicationName);
-        if (configMap != null && configMap.containsKey(configuration)) {
-            configurationItem = configMap.get(configuration).getConfigurationItem();
-        }
-        return configurationItem;
     }
 
     /**
@@ -342,6 +326,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             configuration.setConfigurationItem(configurationItem);
 
             configMap.put(configurationName, configuration);
+            LOGGER.info("[updateConfig] update config,key configurationName:{},value configuration:{}", configurationName, configuration);
             return configuration;
         }
     }
@@ -366,8 +351,11 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
         configMap.put(configurationName, configuration);
 
+        LOGGER.info("[initConfig] process initConfigurationItem,put key configurationName:{},value configuration:{}", configurationName, configuration);
+
         if (initApplication) {
             versionMap.put(applicationName, configMap);
+            LOGGER.info("[initConfig] process initConfigurationItem,put key applicationName:{}", applicationName);
         }
         return configuration;
     }
@@ -388,5 +376,20 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return configMap.get(configurationName);
         }
         return Configuration.EMPTY;
+    }
+
+    private <T> List<ConfigurationItem<T>> convertToConfigurationList(GetConfigurationResponse response, String configurationName, TypeRef<T> type) {
+        List<ConfigurationItem<T>> list = new ArrayList<>();
+        if (response == null) {
+            return list;
+        }
+        ConfigurationItem<T> configurationItem = new ConfigurationItem<>();
+        configurationItem.setKey(configurationName);
+
+        T content = serializerProcessor.deserialize(response.content(), type, configurationName);
+        configurationItem.setContent(content);
+
+        list.add(configurationItem);
+        return list;
     }
 }

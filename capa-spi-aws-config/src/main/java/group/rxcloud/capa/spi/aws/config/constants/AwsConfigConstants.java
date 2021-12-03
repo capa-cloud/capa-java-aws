@@ -14,24 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.config.scheduler;
-
-import reactor.core.scheduler.Scheduler;
-import reactor.core.scheduler.Schedulers;
-
-import static reactor.core.scheduler.Schedulers.DEFAULT_BOUNDED_ELASTIC_QUEUESIZE;
-import static reactor.core.scheduler.Schedulers.DEFAULT_BOUNDED_ELASTIC_SIZE;
+package group.rxcloud.capa.spi.aws.config.constants;
 
 /**
  * @author Reckless Xu
+ * 2021/12/1
  */
-public enum AwsCapaConfigurationScheduler {
-
-    INSTANCE;
-
-    public final Scheduler configSubscribePollingScheduler = Schedulers.newBoundedElastic(DEFAULT_BOUNDED_ELASTIC_SIZE, DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-            "subscribeConfigScheduler", 60, true);
-
-    public final Scheduler configPublisherScheduler = Schedulers.newBoundedElastic(DEFAULT_BOUNDED_ELASTIC_SIZE, DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-            "configPublisherScheduler", 60, true);
+public interface AwsConfigConstants {
+    long REQUEST_TIMEOUT_IN_SECONDS = 15L;
 }
