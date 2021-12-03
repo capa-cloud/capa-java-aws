@@ -25,7 +25,7 @@ public interface AwsCapaTelemetryProperties {
 
     abstract class Settings {
 
-        private static String awsTraceId = "";
+        private static String awsTraceId = "capa-trace-id";
 
         private static final String TELEMETRY_AWS_TRACE_ID_KEY = "TELEMETRY_AWS_TRACE_ID_KEY";
 
