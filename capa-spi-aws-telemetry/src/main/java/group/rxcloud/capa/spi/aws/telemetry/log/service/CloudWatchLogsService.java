@@ -122,55 +122,62 @@ public class CloudWatchLogsService {
     }
 
     private static void createLogGroup() {
-        //Describe log group to confirm whether the log group has been created..
-        DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()
-                .logGroupNamePrefix(APPLICATION_ENV)
-                .build();
-        DescribeLogGroupsResponse describeLogGroupsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogGroups(describeLogGroupsRequest);
-        // If the log group is not created, then create the log group.
-        List<LogGroup> logGroups = describeLogGroupsResponse.logGroups();
-        Boolean hasLogGroup = Boolean.FALSE;
-        if (CollectionUtils.isNotEmpty(logGroups)) {
-            Optional<LogGroup> logGroupOptional = logGroups.stream()
-                    .filter(logGroup -> APPLICATION_ENV.equalsIgnoreCase(logGroup.logGroupName()))
-                    .findAny();
-            if (logGroupOptional.isPresent()) {
-                hasLogGroup = Boolean.TRUE;
-            }
-        }
-        if (!describeLogGroupsResponse.hasLogGroups() || !hasLogGroup) {
-            CreateLogGroupRequest createLogGroupRequest = CreateLogGroupRequest.builder()
-                    .logGroupName(APPLICATION_ENV)
+        try {
+            //Describe log group to confirm whether the log group has been created..
+            DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()
+                    .logGroupNamePrefix(APPLICATION_ENV)
                     .build();
-            CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
+            DescribeLogGroupsResponse describeLogGroupsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogGroups(describeLogGroupsRequest);
+            // If the log group is not created, then create the log group.
+            List<LogGroup> logGroups = describeLogGroupsResponse.logGroups();
+            Boolean hasLogGroup = Boolean.FALSE;
+            if (CollectionUtils.isNotEmpty(logGroups)) {
+                Optional<LogGroup> logGroupOptional = logGroups.stream()
+                        .filter(logGroup -> APPLICATION_ENV.equalsIgnoreCase(logGroup.logGroupName()))
+                        .findAny();
+                if (logGroupOptional.isPresent()) {
+                    hasLogGroup = Boolean.TRUE;
+                }
+            }
+            if (!describeLogGroupsResponse.hasLogGroups() || !hasLogGroup) {
+                CreateLogGroupRequest createLogGroupRequest = CreateLogGroupRequest.builder()
+                        .logGroupName(APPLICATION_ENV)
+                        .build();
+                CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Create log group error. Error info is " + e.getLocalizedMessage());
         }
     }
 
     private static void createLogStream() {
-
-        //Describe log stream to confirm whether the log stream has been created.
-        DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()
-                .logGroupName(APPLICATION_ENV)
-                .logStreamNamePrefix(APP_ID)
-                .build();
-        DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(describeLogStreamsRequest);
-        // If the log stream is not created, then create the log stream.
-        List<LogStream> logStreams = describeLogStreamsResponse.logStreams();
-        Boolean hasLogStream = Boolean.FALSE;
-        if (CollectionUtils.isNotEmpty(logStreams)) {
-            Optional<LogStream> logStreamOptional = logStreams.stream()
-                    .filter(logStream -> APP_ID.equalsIgnoreCase(logStream.logStreamName()))
-                    .findAny();
-            if (logStreamOptional.isPresent()) {
-                hasLogStream = Boolean.TRUE;
-            }
-        }
-        if (!describeLogStreamsResponse.hasLogStreams() || !hasLogStream) {
-            CreateLogStreamRequest createLogStreamRequest = CreateLogStreamRequest.builder()
+        try {
+            //Describe log stream to confirm whether the log stream has been created.
+            DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()
                     .logGroupName(APPLICATION_ENV)
-                    .logStreamName(APP_ID)
+                    .logStreamNamePrefix(APP_ID)
                     .build();
-            CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
+            DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(describeLogStreamsRequest);
+            // If the log stream is not created, then create the log stream.
+            List<LogStream> logStreams = describeLogStreamsResponse.logStreams();
+            Boolean hasLogStream = Boolean.FALSE;
+            if (CollectionUtils.isNotEmpty(logStreams)) {
+                Optional<LogStream> logStreamOptional = logStreams.stream()
+                        .filter(logStream -> APP_ID.equalsIgnoreCase(logStream.logStreamName()))
+                        .findAny();
+                if (logStreamOptional.isPresent()) {
+                    hasLogStream = Boolean.TRUE;
+                }
+            }
+            if (!describeLogStreamsResponse.hasLogStreams() || !hasLogStream) {
+                CreateLogStreamRequest createLogStreamRequest = CreateLogStreamRequest.builder()
+                        .logGroupName(APPLICATION_ENV)
+                        .logStreamName(APP_ID)
+                        .build();
+                CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Create log stream error. Error info is " + e.getLocalizedMessage());
         }
     }
 }
