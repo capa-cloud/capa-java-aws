@@ -23,14 +23,14 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.0.5-alpha-1</version>
+        <version>1.0.5.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-mesh</artifactId>
     <name>capa-skd-spi-aws-appmesh</name>
 
     <properties>
-        <capa-serializer.version>1.0.2.RELEASE</capa-serializer.version>
+        <capa-serializer.version>1.0.3.RELEASE</capa-serializer.version>
     </properties>
 
     <dependencies>

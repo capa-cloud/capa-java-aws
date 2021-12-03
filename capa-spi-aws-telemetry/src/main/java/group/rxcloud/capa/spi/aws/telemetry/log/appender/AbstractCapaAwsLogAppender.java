@@ -23,7 +23,7 @@ import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import group.rxcloud.capa.spi.aws.telemetry.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +31,8 @@ import java.util.Optional;
 
 /**
  * The abstract capa aws log appender.
+ * <p>
+ * TODO please move log to log module, not telemetry module
  */
 public abstract class AbstractCapaAwsLogAppender {
 
@@ -91,12 +93,6 @@ public abstract class AbstractCapaAwsLogAppender {
         });
     }
 
-    /**
-     *
-     * @param message
-     * @param tagsEndIndex
-     * @return
-     */
     protected Map<String, String> parseTags(String message, int tagsEndIndex) {
         Map<String, String> tags = null;
         int tagStart = 2;
@@ -133,7 +129,7 @@ public abstract class AbstractCapaAwsLogAppender {
 
     protected void appendLogs(String message, Map<String, String> MDCTags, String logLevel) {
         if (StringUtils.isBlank(message)) {
-            message = StringUtils.EMPTY;
+            message = "";
         }
         Map<String, String> tags = new HashMap<>();
         tags.put(LOG_LEVEL_NAME, logLevel);
@@ -149,7 +145,7 @@ public abstract class AbstractCapaAwsLogAppender {
         tags = appendMDCTags(tags, MDCTags);
 
         Map<String, String> logMessageMap = new HashMap<>();
-        if (StringUtils.isNotEmpty(message)) {
+        if (StringUtils.isNotBlank(message)) {
             logMessageMap.put(LOG_DATA_NAME, message);
         }
         if (tags != null && !tags.isEmpty()) {

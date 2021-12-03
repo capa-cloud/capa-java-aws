@@ -22,6 +22,7 @@ import io.opentelemetry.api.metrics.BoundDoubleHistogram;
 import io.opentelemetry.context.Context;
 
 /**
+ *
  */
 public class CloundWatchDoubleHistogram extends CapaDoubleHistogramSpi implements BoundDoubleHistogram {
 

@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.5-alpha-1</version>
+    <version>1.0.5.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -95,35 +95,32 @@
             <!-- Capa's core SDK with all features. -->
             <dependency>
                 <groupId>group.rxcloud</groupId>
-                <artifactId>capa-sdk-spi</artifactId>
+                <artifactId>capa-parent</artifactId>
                 <version>${capa.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <!-- SDK modules -->
             <dependency>
                 <groupId>group.rxcloud</groupId>
-                <artifactId>capa-spi-aws</artifactId>
-                <version>1.0.5-alpha-1</version>
-            </dependency>
-            <dependency>
-                <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-infrastructure</artifactId>
-                <version>1.0.5-alpha-1</version>
+                <version>1.0.5.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-mesh</artifactId>
-                <version>1.0.5-alpha-1</version>
+                <version>1.0.5.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
-                <version>1.0.5-alpha-1</version>
+                <version>1.0.5.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-telemetry</artifactId>
-                <version>1.0.5-alpha-1</version>
+                <version>1.0.5.RELEASE</version>
             </dependency>
 
             <dependency>

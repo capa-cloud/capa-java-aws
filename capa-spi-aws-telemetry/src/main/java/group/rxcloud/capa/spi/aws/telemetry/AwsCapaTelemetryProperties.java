@@ -14,20 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.trace;
+package group.rxcloud.capa.spi.aws.telemetry;
 
-import group.rxcloud.capa.spi.telemetry.ContextPropagatorLoaderSpi;
-import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.context.propagation.TextMapPropagator;
 
-/**
- * Load ContextPropagator for ctrip.
- */
-public class AwsWebContextPropagatorLoader extends ContextPropagatorLoaderSpi {
+import group.rxcloud.capa.infrastructure.CapaProperties;
 
-    @Override
-    public ContextPropagators load() {
-        return ContextPropagators
-                .create(TextMapPropagator.composite(TraceIdRpcContextPropagator.getInstance()));
+import java.util.Properties;
+
+public interface AwsCapaTelemetryProperties {
+
+    abstract class Settings {
+
+        private static String awsTraceId = "";
+
+        private static final String TELEMETRY_AWS_TRACE_ID_KEY = "TELEMETRY_AWS_TRACE_ID_KEY";
+
+        static {
+            Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("telemetry-aws");
+
+            awsTraceId = awsProperties.getProperty(TELEMETRY_AWS_TRACE_ID_KEY, awsTraceId);
+        }
+
+        public static String getTelemetryAwsTraceIdKey() {
+            return awsTraceId;
+        }
+
+        private Settings() {
+        }
     }
 }

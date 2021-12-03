@@ -84,9 +84,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         List<Dimension> dimensions = new ArrayList<>();
         attributes.forEach((key, value) -> {
             dimensions.add(Dimension.builder()
-                                    .name(key.getKey())
-                                    .value(String.valueOf(value))
-                                    .build());
+                    .name(key.getKey())
+                    .value(String.valueOf(value))
+                    .build());
         });
         dimensions.sort(new Comparator<Dimension>() {
             @Override
@@ -118,7 +118,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
         Map<String, List<CollectedMetrics>> metricsMapGroupByNamespace = new HashMap<>();
         metricsMap.values()
-                  .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.nameSpace, k -> new ArrayList<>()).add(m));
+                .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.nameSpace, k -> new ArrayList<>()).add(m));
         return metricsMapGroupByNamespace;
     }
 
@@ -135,9 +135,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
             metricsMap.computeIfAbsent(
-                    getKey(namespace, metricName, millis, p.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
-                      .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
+                            getKey(namespace, metricName, millis, p.getAttributes()),
+                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+                    .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
         });
     }
 
@@ -146,8 +146,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, p.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
-                      .addPoint(p.getValue());
+                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+                    .addPoint(p.getValue());
         });
     }
 
@@ -157,8 +157,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(d -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(d.getEpochNanos());
             StatisticSet.Builder setBuilder = StatisticSet.builder()
-                                                          .sum(d.getSum())
-                                                          .sampleCount(BigDecimal.valueOf(d.getCount()).doubleValue());
+                    .sum(d.getSum())
+                    .sampleCount(BigDecimal.valueOf(d.getCount()).doubleValue());
             if (d.getPercentileValues() != null) {
                 d.getPercentileValues().forEach(percentile -> {
                     if (Double.compare(0, percentile.getPercentile()) == 0) {
@@ -169,16 +169,16 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                 });
             }
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, d.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
-                      .setStatisticSet(setBuilder.build());
+                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
+                    .setStatisticSet(setBuilder.build());
         });
     }
 
     private static void send(String namespace, List<MetricDatum> data) {
         if (data != null && !data.isEmpty()) {
             PutMetricDataRequest request = PutMetricDataRequest.builder()
-                                                               .namespace(namespace)
-                                                               .metricData(data).build();
+                    .namespace(namespace)
+                    .metricData(data).build();
             PutMetricDataResponse response = CloudWatchClientProvider.get().putMetricData(request);
             if (!response.sdkHttpResponse().isSuccessful()) {
                 log.info("Fail to export metrics to cloud watch. statusCode={}, msg={}.",
@@ -203,13 +203,13 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static MetricDatum build(CollectedMetrics c, List<Double> values, List<Double> counts) {
         return MetricDatum.builder()
-                          .metricName(c.metricName)
-                          .unit(StandardUnit.NONE)
-                          .timestamp(c.instant)
-                          .dimensions(c.dimensions)
-                          .statisticValues(c.statisticSet)
-                          .values(values)
-                          .counts(counts).build();
+                .metricName(c.metricName)
+                .unit(StandardUnit.NONE)
+                .timestamp(c.instant)
+                .dimensions(c.dimensions)
+                .statisticValues(c.statisticSet)
+                .values(values)
+                .counts(counts).build();
     }
 
     private static void convertAndSend(String namespace, List<CollectedMetrics> list) {
@@ -304,9 +304,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             try {
                 long millis = 0L;
                 histogramCache[currentIndex].computeIfAbsent(getKey(namespace, metricName, millis, attributes),
-                        k ->
-                                new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
-                                            .addPoint(value);
+                                k ->
+                                        new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
+                        .addPoint(value);
             } finally {
                 readLock.unlock();
             }

@@ -16,7 +16,7 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.log.appender;
 
-import group.rxcloud.capa.component.log.agent.CapaLog4jAppenderAgent;
+import group.rxcloud.capa.component.log.CapaLog4jAppenderAgent;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import org.apache.logging.log4j.core.LogEvent;
@@ -26,6 +26,9 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * TODO please move log to log module, not telemetry module
+ */
 public class CapaAwsLog4jAppender extends AbstractCapaAwsLogAppender
         implements CapaLog4jAppenderAgent.CapaLog4jAppender {
     /**
@@ -38,7 +41,7 @@ public class CapaAwsLog4jAppender extends AbstractCapaAwsLogAppender
     }
 
     @Override
-    public void appendLog(LogEvent event) {
+    public void append(LogEvent event) {
         try {
             if (event == null
                     || event.getLevel() == null
