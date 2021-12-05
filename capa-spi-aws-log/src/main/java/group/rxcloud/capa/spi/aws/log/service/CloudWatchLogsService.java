@@ -140,6 +140,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
+            // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_GROUP_ERROR);
             throw new CapaException(e);
         }
     }
@@ -171,6 +172,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
             }
         } catch (Throwable e) {
+            // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_STREAM_ERROR);
             throw new CapaException(e);
         }
     }
