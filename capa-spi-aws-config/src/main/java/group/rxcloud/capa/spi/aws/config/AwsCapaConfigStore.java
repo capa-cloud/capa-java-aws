@@ -51,8 +51,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static group.rxcloud.capa.spi.aws.config.constants.AwsConfigConstants.REQUEST_TIMEOUT_IN_SECONDS;
-
 
 /**
  * @author Reckless Xu
@@ -81,6 +79,8 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     private SerializerProcessor serializerProcessor;
 
     private AppConfigAsyncClient appConfigAsyncClient;
+
+    private static final Long REQUEST_TIMEOUT_IN_SECONDS = AwsCapaConfigurationProperties.AppConfigProperties.Settings.getRequestTimeoutInSeconds();
 
     /**
      * Instantiates a new Capa configuration.
@@ -126,7 +126,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     protected <T> Mono<List<ConfigurationItem<T>>> doGet(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
         List<ConfigurationItem<T>> items = new ArrayList<>();
         if (CollectionUtils.isNullOrEmpty(keys)) {
-            LOGGER.warn("keys is null or empty,appId:{}", appId);
+            LOGGER.warn("[Capa.Config] keys is null or empty,appId:{}", appId);
             return Mono.error(new CapaException(CapaErrorContext.PARAMETER_ERROR, "keys is null or empty"));
         }
         // todo:need to get the specific env from system properties
@@ -144,7 +144,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
             return convertToConfigurationList(response, configurationName, type);
         })
-                .doOnError(e -> LOGGER.error("[getConfiguration] error occurs when getconfiguration, request:{}", request, e));
+                .doOnError(e -> LOGGER.error("[Capa.Config.getConfiguration] error occurs when getconfiguration, request:{}", request, e));
     }
 
     @Override
@@ -171,7 +171,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     private synchronized <T> Configuration<T> initConfig(String applicationName, String configurationName, String group, String label, Map<String, String> metadata, TypeRef<T> type) {
         // double check whether has been initialized
         if (isInitialized(applicationName, configurationName)) {
-            LOGGER.info("[initConfig] config has been initialized before,applicationName:{},configurationName:{}", applicationName, configurationName);
+            LOGGER.info("[Capa.Config.initConfig] config has been initialized before,applicationName:{},configurationName:{}", applicationName, configurationName);
             return Configuration.EMPTY;
         }
         String version = getCurVersion(applicationName, configurationName);
@@ -184,11 +184,11 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                 .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                 .build();
 
-        LOGGER.info("[initConfig] call getconfiguration in init process,request:{}", request);
+        LOGGER.info("[Capa.Config.initConfig] call getconfiguration in init process,request:{}", request);
 
         return Mono.fromCallable(() -> {
             GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-            LOGGER.info("[initConfig] call getconfiguration in init process,response:{}", response);
+            LOGGER.info("[Capa.Config.initConfig] call getconfiguration in init process,response:{}", response);
             return response;
         })
                 .doOnError(e -> LOGGER.error("[initConfig] error occurs when getconfiguration in init process, request:{}", request, e))
@@ -225,17 +225,17 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                                 .clientConfigurationVersion(version)
                                 .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                                 .build();
-                        LOGGER.info("[subscribePolling] subscribe polling task start,request:{}", request);
+                        LOGGER.info("[Capa.Config.subscribePolling] subscribe polling task start,request:{}", request);
 
                         GetConfigurationResponse resp = null;
                         try {
                             resp = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
                         } catch (InterruptedException | ExecutionException | TimeoutException e) {
                             //catch error,log error and not trigger listeners
-                            LOGGER.error("[subscribePolling] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                            LOGGER.error("[Capa.Config.subscribePolling] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
                         }
 
-                        LOGGER.info("[subscribePolling] subscribe polling task end,response:{}", resp);
+                        LOGGER.info("[Capa.Config.subscribePolling] subscribe polling task end,response:{}", resp);
 
                         if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
                             fluxSink.next(resp);
@@ -251,7 +251,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                 })
                 .filter(resp -> resp != Configuration.EMPTY)
                 .subscribe(resp -> {
-                    LOGGER.info("[triggerListener] receive changes and trigger listeners,response:{}", resp);
+                    LOGGER.info("[Capa.Config.triggerListener] receive changes and trigger listeners,response:{}", resp);
                     resp.triggers(resp.getConfigurationItem());
                 });
     }
@@ -264,7 +264,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         return Flux
                 .create(fluxSink -> {
                     configuration.addListener(configurationItem -> {
-                        LOGGER.info("[listenerOnChange] listener onChanges, configurationItem:{}", configurationItem);
+                        LOGGER.info("[Capa.Config.listenerOnChange] listener onChanges, configurationItem:{}", configurationItem);
                         fluxSink.next(configurationItem);
                     });
                 })
@@ -326,7 +326,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             configuration.setConfigurationItem(configurationItem);
 
             configMap.put(configurationName, configuration);
-            LOGGER.info("[updateConfig] update config,key configurationName:{},value configuration:{}", configurationName, configuration);
+            LOGGER.info("[Capa.Config.updateConfig] update config,key configurationName:{},value configuration:{}", configurationName, configuration);
             return configuration;
         }
     }
@@ -351,11 +351,11 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
         configMap.put(configurationName, configuration);
 
-        LOGGER.info("[initConfig] process initConfigurationItem,put key configurationName:{},value configuration:{}", configurationName, configuration);
+        LOGGER.info("[Capa.Config.initConfig] process initConfigurationItem,put key configurationName:{},value configuration:{}", configurationName, configuration);
 
         if (initApplication) {
             versionMap.put(applicationName, configMap);
-            LOGGER.info("[initConfig] process initConfigurationItem,put key applicationName:{}", applicationName);
+            LOGGER.info("[Capa.Config.initConfig] process initConfigurationItem,put key applicationName:{}", applicationName);
         }
         return configuration;
     }
