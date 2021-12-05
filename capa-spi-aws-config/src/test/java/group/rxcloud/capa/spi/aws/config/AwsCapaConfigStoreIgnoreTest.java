@@ -48,16 +48,16 @@ class AwsCapaConfigStoreIgnoreTest {
     @Disabled
     @Test
     void testDoGet(){
-        Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
-        mono.subscribe(resp->{
-            System.out.println(resp.get(0).getContent().getAge());
-        });
-        List<ConfigurationItem<User>> block = mono.block();
-        mono.subscribe(resp->{
-            System.out.println(resp.get(0).getContent().getAge());
-        });
-        List<ConfigurationItem<User>> block2 = mono.block();
-        System.out.println("");
+        //mock case that config file not exists
+        Mono<List<ConfigurationItem<User>>> mono2 = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
+        System.out.println(mono2.block().get(0).getContent().getAge());
+
+//        Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
+//        System.out.println(mono.block().get(0).getContent().getAge());
+//
+//        Mono<List<ConfigurationItem<User>>> mono2 = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
+//        System.out.println(mono2.block().get(0).getContent().getAge());
+
         while (true){
 
         }
