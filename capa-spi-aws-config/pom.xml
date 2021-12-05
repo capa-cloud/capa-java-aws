@@ -67,6 +67,11 @@
             <artifactId>byte-buddy</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-foundation</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
