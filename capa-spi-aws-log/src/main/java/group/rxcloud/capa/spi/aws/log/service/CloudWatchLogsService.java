@@ -148,7 +148,7 @@ public class CloudWatchLogsService {
                         .build();
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException("Create log group error. Error info is " + e.getLocalizedMessage());
         }
     }
@@ -179,7 +179,7 @@ public class CloudWatchLogsService {
                         .build();
                 CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new RuntimeException("Create log stream error. Error info is " + e.getLocalizedMessage());
         }
     }
