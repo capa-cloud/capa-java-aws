@@ -32,6 +32,18 @@ public class Configuration<T> {
 
     public static final Configuration EMPTY = new Configuration<>();
 
+    @Override
+    public String toString() {
+        return "Configuration{" +
+                "clientConfigurationVersion='" + clientConfigurationVersion + '\'' +
+                ", configurationItem=" + configurationItem +
+                ", lock=" + lock +
+                ", listeners=" + listeners +
+                ", initialized=" + initialized +
+                ", subscribed=" + subscribed +
+                '}';
+    }
+
     private String clientConfigurationVersion;
 
     private ConfigurationItem<T> configurationItem;

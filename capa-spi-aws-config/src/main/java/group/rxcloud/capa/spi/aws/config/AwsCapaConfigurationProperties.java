@@ -34,14 +34,24 @@ public interface AwsCapaConfigurationProperties {
 
             private static final String CONFIG_AWS_APP_CONFIG_ENV = "CONFIG_AWS_APP_CONFIG_ENV";
 
+            private static Long requestTimeoutInSeconds = 15L;
+
+            private static final String REQUEST_TIMEOUT_IN_SECONDS = "REQUEST_TIMEOUT_IN_SECONDS";
+
             static {
                 Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("configuration-aws");
 
                 awsAppConfigEnv = awsProperties.getProperty(CONFIG_AWS_APP_CONFIG_ENV, awsAppConfigEnv);
+
+                requestTimeoutInSeconds = Long.parseLong(awsProperties.getProperty(REQUEST_TIMEOUT_IN_SECONDS, String.valueOf(requestTimeoutInSeconds)));
             }
 
             public static String getConfigAwsAppConfigEnv() {
                 return awsAppConfigEnv;
+            }
+
+            public static Long getRequestTimeoutInSeconds() {
+                return requestTimeoutInSeconds;
             }
 
             private Settings() {

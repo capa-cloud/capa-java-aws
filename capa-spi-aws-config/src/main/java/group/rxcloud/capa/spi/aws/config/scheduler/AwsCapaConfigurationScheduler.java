@@ -29,9 +29,6 @@ public enum AwsCapaConfigurationScheduler {
 
     INSTANCE;
 
-    public final Scheduler configInitScheduler = Schedulers.newBoundedElastic(DEFAULT_BOUNDED_ELASTIC_SIZE, DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
-            "configInitScheduler", 60, true);
-
     public final Scheduler configSubscribePollingScheduler = Schedulers.newBoundedElastic(DEFAULT_BOUNDED_ELASTIC_SIZE, DEFAULT_BOUNDED_ELASTIC_QUEUESIZE,
             "subscribeConfigScheduler", 60, true);
 
