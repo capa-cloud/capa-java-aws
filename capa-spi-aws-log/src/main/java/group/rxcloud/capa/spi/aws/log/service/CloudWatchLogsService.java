@@ -18,6 +18,7 @@ package group.rxcloud.capa.spi.aws.log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
+import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import io.opentelemetry.api.common.AttributeKey;
@@ -25,17 +26,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
-import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsResponse;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
-import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
-import software.amazon.awssdk.services.cloudwatchlogs.model.LogGroup;
-import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
-import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
+import software.amazon.awssdk.services.cloudwatchlogs.model.*;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.util.List;
@@ -149,7 +140,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
-            throw new RuntimeException("Create log group error. Error info is " + e.getLocalizedMessage());
+            throw new CapaException(e);
         }
     }
 
@@ -180,7 +171,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
             }
         } catch (Throwable e) {
-            throw new RuntimeException("Create log stream error. Error info is " + e.getLocalizedMessage());
+            throw new CapaException(e);
         }
     }
 }
