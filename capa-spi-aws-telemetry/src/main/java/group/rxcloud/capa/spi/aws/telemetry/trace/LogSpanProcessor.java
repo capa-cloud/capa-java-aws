@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -40,19 +39,27 @@ public class LogSpanProcessor implements SpanProcessor {
     private static final Logger log = LoggerFactory.getLogger(LogSpanProcessor.class);
 
     private static StringBuilder addBasicTags(SpanData spanData) {
-        StringBuilder builder = new StringBuilder("[[traceId=").append(spanData.getTraceId());
-        appendTag(builder, "spanId", spanData.getSpanId());
-        appendTag(builder, "parentSpanId", spanData.getParentSpanId());
-        appendTag(builder, "spanName", spanData.getName());
-        appendTag(builder, "status", spanData.getStatus().getStatusCode().name());
+        StringBuilder builder = new StringBuilder("[[_trace_id=").append(spanData.getTraceId());
+        appendTag(builder, "_span_id", spanData.getSpanId());
+        appendTag(builder, "_parent_span_id", spanData.getParentSpanId());
+        appendTag(builder, "_span_name", spanData.getName());
+        appendTag(builder, "_span_status", spanData.getStatus().getStatusCode().name());
         if (spanData.getKind() != null) {
-            appendTag(builder, "spanKind", spanData.getKind().name());
+            appendTag(builder, "_span_kind", spanData.getKind().name());
         }
         InstrumentationLibraryInfo libraryInfo = spanData.getInstrumentationLibraryInfo();
         if (libraryInfo != null) {
-            appendTag(builder, "tracerName", libraryInfo.getName());
-            appendTag(builder, "schemaUrl", libraryInfo.getSchemaUrl());
-            appendTag(builder, "version", libraryInfo.getVersion());
+            appendTag(builder, "_tracer_name", libraryInfo.getName());
+            appendTag(builder, "_tracer_schema_url", libraryInfo.getSchemaUrl());
+            appendTag(builder, "_tracer_version", libraryInfo.getVersion());
+        }
+        appendTag(builder, "_span_start_nanos", String.valueOf(spanData.getStartEpochNanos()));
+        appendTag(builder, "_span_end_nanos", String.valueOf(spanData.getEndEpochNanos()));
+        appendTag(builder, "_span_latency_nanos", String.valueOf(spanData.getEndEpochNanos() - spanData.getStartEpochNanos()));
+        if (!spanData.getAttributes().isEmpty()) {
+            spanData.getAttributes().forEach((k, v) -> {
+                appendTag(builder, "attr." + k.getKey(), String.valueOf(v));
+            });
         }
         builder.append("]]");
         return builder;
@@ -60,19 +67,8 @@ public class LogSpanProcessor implements SpanProcessor {
 
     private static void appendTag(StringBuilder builder, String key, String value) {
         if (key != null && value != null) {
-            builder.append(", ").append(key).append('=').append(value);
+            builder.append(',').append(key).append('=').append(value);
         }
-    }
-
-    private static void appendAttributes(String blankPrefix, StringBuilder builder, Attributes attributes) {
-        builder.append('\n').append(blankPrefix).append("\"attributes\" = {");
-        if (!attributes.isEmpty()) {
-            attributes.forEach((k, v) -> {
-                builder.append("\n\t").append(blankPrefix).append(k.getKey()).append('=').append(v).append(',');
-            });
-            builder.deleteCharAt(builder.length() - 1);
-        }
-        builder.append('\n').append(blankPrefix).append('}');
     }
 
     @Override
@@ -90,32 +86,37 @@ public class LogSpanProcessor implements SpanProcessor {
         boolean failed = spanData.getStatus().getStatusCode() == StatusCode.ERROR;
 
         StringBuilder builder = addBasicTags(spanData);
-        appendAttributes("", builder, spanData.getAttributes());
-        builder.append(",\n\"startNanos\": ").append(spanData.getStartEpochNanos());
-        builder.append(",\n\"endNanos\": ").append(spanData.getEndEpochNanos());
-        builder.append(",\n\"latencyNanos\": ").append(spanData.getEndEpochNanos() - spanData.getStartEpochNanos());
+        builder.append('{');
+        String sep = "";
         if (!spanData.getLinks().isEmpty()) {
-            builder.append(",\n\"links\": [");
-            spanData.getLinks().forEach(l -> builder.append("\n\t").append(l).append(','));
+            builder.append("\"links\": [");
+            spanData.getLinks().forEach(l -> builder.append(' ').append(l).append(','));
             builder.deleteCharAt(builder.length() - 1);
-            builder.append("\n]");
+            builder.append(" ]");
+            sep = ", ";
         }
         if (!spanData.getEvents().isEmpty()) {
-            builder.append(",\n\"events\": [");
+            builder.append(sep).append("\"events\": [");
             for (EventData l : spanData.getEvents()) {
-                builder.append("\n\t").append("{\n\t\t\"name\": \"").append(l.getName())
-                        .append("\",\n\t\t\"time\": ")
-                        .append(Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(l.getEpochNanos())).toString());
-                appendAttributes("\t\t", builder, l.getAttributes());
+                builder.append(' ').append("{ \"name\": \"").append(l.getName())
+                       .append("\", \"time\": \"")
+                       .append(Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(l.getEpochNanos())).toString()).append('"');
+                if (!l.getAttributes().isEmpty()) {
+                    builder.append(", \"attributes\": {");
+                    l.getAttributes().forEach((k,v) -> builder.append('"').append(k.getKey()).append("\": \"").append(v).append("\","));
+                    builder.deleteCharAt(builder.length() - 1)
+                    .append('}');
+                }
                 if ("exception".equals(l.getName())) {
                     failed = true;
                 }
-                builder.append("\n\t},");
+                builder.append(" },");
             }
             builder.deleteCharAt(builder.length() - 1);
-            builder.append("\n]");
+            builder.append(" ]");
         }
 
+        builder.append('}');
         if (failed) {
             log.error(builder.toString());
         } else {

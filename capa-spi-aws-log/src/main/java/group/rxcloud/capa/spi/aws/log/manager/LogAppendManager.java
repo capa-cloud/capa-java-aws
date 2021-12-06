@@ -20,10 +20,10 @@ import com.google.gson.Gson;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
+import group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.utils.StringUtils;
-import  group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -142,12 +142,12 @@ public class LogAppendManager {
         if (StringUtils.isNotBlank(message)) {
             logMessageMap.put(LOG_DATA_NAME, message);
         }
-        if (tags != null && !tags.isEmpty()) {
-            logMessageMap.putAll(tags);
-        }
         Map<String, String> defaultTags = getDefaultTags();
         if (defaultTags != null && !defaultTags.isEmpty()) {
             logMessageMap.putAll(defaultTags);
+        }
+        if (tags != null && !tags.isEmpty()) {
+            logMessageMap.putAll(tags);
         }
         // put logs to CloudWatchLogs
         if (!logMessageMap.isEmpty()) {

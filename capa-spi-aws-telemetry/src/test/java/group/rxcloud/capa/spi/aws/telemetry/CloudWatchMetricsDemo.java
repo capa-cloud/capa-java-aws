@@ -23,6 +23,7 @@ import io.opentelemetry.api.metrics.BoundLongCounter;
 import io.opentelemetry.api.metrics.BoundLongUpDownCounter;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.api.trace.Span;
@@ -55,6 +56,7 @@ public class CloudWatchMetricsDemo {
         Span subSpan = tracer.spanBuilder("subSpan")
                              .setSpanKind(SpanKind.INTERNAL)
                              .setAttribute("type", "sub")
+                             .setAttribute("key2", "value2")
                              .setParent(Context.current().with(rootSpan))
                              .startSpan();
         subSpan.addEvent("myEvent", Attributes.of(AttributeKey.stringKey("key"), "value"));
@@ -64,6 +66,7 @@ public class CloudWatchMetricsDemo {
     //@Test
     public void metrics() throws InterruptedException {
         // init client.
+        System.setProperty("REGION", "ap-south-1");
         Meter meter = ClientHolder.getOrCreate().buildMeter("capa").block();
 
         ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -80,14 +83,17 @@ public class CloudWatchMetricsDemo {
             // histogram
             Random random = new Random();
 
+            LongHistogram timeHis = meter.histogramBuilder("histogram_time").ofLongs()
+                                                 .build();
             DoubleHistogram doubleHistogram = meter.histogramBuilder("histogram_test")
                                                    .build();
             BoundDoubleHistogram boundDoubleHistogram = doubleHistogram
                     .bind(Attributes.of(AttributeKey.stringKey("type"), "histogram"));
-            for (int i = 0; i < 5000; i++) {
+            for (int i = 0; i < 1500; i++) {
                 int num = random.nextInt(50);
                 doubleHistogram.record(num);
                 boundDoubleHistogram.record(num + 2);
+                timeHis.record(1L);
                 //System.out.println("histogram " + num);
                 try {
                     Thread.sleep(1000);
@@ -102,7 +108,8 @@ public class CloudWatchMetricsDemo {
         // counter with different attrs will counting seperately. attrs will be attached to data points.
         LongCounter counter = meter.counterBuilder("counter_test")
                                    .build();
-
+        LongCounter timeCounter = meter.counterBuilder("counter_time")
+                                   .build();
         BoundLongCounter boundLongCounter1 = counter.bind(
                 Attributes.of(AttributeKey.stringKey("type"), "id_1"));
         BoundLongCounter boundLongCounter2 = counter.bind(Attributes.of(AttributeKey.stringKey("type"), "id_2"));
@@ -113,16 +120,17 @@ public class CloudWatchMetricsDemo {
                 .bind(Attributes.of(AttributeKey.stringKey("type"), "dec"));
 
         Random random = new Random();
-        for (int i = 0; i < 120; i++) {
+        for (int i = 0; i < 1500; i++) {
             int num1 = random.nextInt(5);
             int num2 = random.nextInt(5);
             boundLongCounter1.add(num1);
             boundLongCounter2.add(num2);
             boundLongUpDownCounter.add(num1);
             boundLongUpDownCounter.add(-num2);
+            timeCounter.add(1L);
             Thread.sleep(1000);
         }
 
-        Thread.sleep(10 * 60 * 1000);
+        Thread.sleep(30 * 60 * 1000);
     }
 }
