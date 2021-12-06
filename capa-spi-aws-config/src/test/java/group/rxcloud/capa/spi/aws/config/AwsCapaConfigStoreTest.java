@@ -191,13 +191,12 @@ class AwsCapaConfigStoreTest {
         map.put("100012345_FAT", configMap);
 
         Flux<SubscribeResp<User>> subscribeRespFlux = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test.json"), null, TypeRef.get(User.class));
-        SubscribeResp<User> userSubscribeResp = subscribeRespFlux.skip(1L).blockFirst();
+        SubscribeResp<User> userSubscribeResp = subscribeRespFlux.blockFirst();
         Assertions.assertNotNull(userSubscribeResp);
         Assertions.assertEquals("100012345", userSubscribeResp.getAppId());
         Assertions.assertEquals("aws.appconfig", userSubscribeResp.getStoreName());
         Assertions.assertEquals("test.json", userSubscribeResp.getItems().get(0).getKey());
         Assertions.assertEquals("reckless", userSubscribeResp.getItems().get(0).getContent().getName());
-        Assertions.assertEquals(new Integer(28), userSubscribeResp.getItems().get(0).getContent().getAge());
     }
 
     private CompletableFuture<GetConfigurationResponse> mockGetConfigurationRespV1() {
