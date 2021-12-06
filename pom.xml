@@ -107,22 +107,22 @@
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-infrastructure</artifactId>
-                <version>1.0.5.RELEASE</version>
+                <version>1.0.6.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-mesh</artifactId>
-                <version>1.0.5.RELEASE</version>
+                <version>1.0.6.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
-                <version>1.0.5.RELEASE</version>
+                <version>1.0.6.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-telemetry</artifactId>
-                <version>1.0.5.RELEASE</version>
+                <version>1.0.6.RELEASE</version>
             </dependency>
 
             <dependency>
