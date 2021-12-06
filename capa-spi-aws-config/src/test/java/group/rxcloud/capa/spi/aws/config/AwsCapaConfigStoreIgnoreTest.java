@@ -58,9 +58,9 @@ class AwsCapaConfigStoreIgnoreTest {
 //        Mono<List<ConfigurationItem<User>>> mono2 = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
 //        System.out.println(mono2.block().get(0).getContent().getAge());
 
-        while (true){
-
-        }
+//        while (true){
+//
+//        }
     }
 
     @Disabled
@@ -87,13 +87,13 @@ class AwsCapaConfigStoreIgnoreTest {
         flux3.subscribe(resp -> {
             System.out.println("4:"+resp.getItems().get(0).getContent().getAge());
         });
-        long t1 = System.currentTimeMillis();
-        while (System.currentTimeMillis()-t1<60000*2) {
-
-        }
-        ins.stopSubscribe();
-        while (true){
-
-        }
+//        long t1 = System.currentTimeMillis();
+//        while (System.currentTimeMillis()-t1<60000*2) {
+//
+//        }
+//        ins.stopSubscribe();
+//        while (true){
+//
+//        }
     }
 }
