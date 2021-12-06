@@ -18,6 +18,7 @@ package group.rxcloud.capa.spi.aws.log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
+import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import io.opentelemetry.api.common.AttributeKey;
@@ -149,7 +150,8 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
-            throw new RuntimeException("Create log group error. Error info is " + e.getLocalizedMessage());
+            // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_GROUP_ERROR);
+            throw new CapaException(e);
         }
     }
 
@@ -180,7 +182,8 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
             }
         } catch (Throwable e) {
-            throw new RuntimeException("Create log stream error. Error info is " + e.getLocalizedMessage());
+            // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_STREAM_ERROR);
+            throw new CapaException(e);
         }
     }
 }
