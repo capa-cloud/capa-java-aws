@@ -16,8 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.metrics;
 
-import group.rxcloud.capa.infrastructure.CapaEnvironment;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 
 /**
@@ -25,11 +23,7 @@ import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
  */
 public final class CloudWatchClientProvider {
 
-    private static final CloudWatchClient CLIENT = CloudWatchClient.builder()
-            .region(Region
-                    .of(CapaEnvironment.Provider.getInstance()
-                            .getDeployRegion()))
-            .build();
+    private static final CloudWatchClient CLIENT = CloudWatchClient.builder().build();
 
     private CloudWatchClientProvider() {
     }
