@@ -94,7 +94,7 @@ public class MessageSender extends Thread {
             } catch (Throwable throwable) {
                 try {
                     LONG_COUNTER.ifPresent(longCounter -> {
-                        longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getMessage()))
+                        longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), "BuildCompressedChunkError"))
                                 .add(1);
                     });
                     Thread.sleep(100);
@@ -135,7 +135,7 @@ public class MessageSender extends Thread {
             }
         } catch (Throwable throwable) {
             LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey("PutLogEventsError"), throwable.getMessage()))
+                longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), "SenderPutLogEventsError"))
                         .add(1);
             });
         }

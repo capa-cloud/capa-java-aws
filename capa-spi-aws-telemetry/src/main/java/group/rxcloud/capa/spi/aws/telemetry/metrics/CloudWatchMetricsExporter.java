@@ -16,34 +16,20 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.metrics;
 
+import group.rxcloud.capa.addons.foundation.trip.Foundation;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
 import group.rxcloud.capa.spi.telemetry.CapaMetricsExporterSpi;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.common.CompletableResultCode;
-import io.opentelemetry.sdk.metrics.data.DoublePointData;
-import io.opentelemetry.sdk.metrics.data.DoubleSummaryPointData;
-import io.opentelemetry.sdk.metrics.data.LongPointData;
-import io.opentelemetry.sdk.metrics.data.MetricData;
-import io.opentelemetry.sdk.metrics.data.MetricDataType;
+import io.opentelemetry.sdk.metrics.data.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.cloudwatch.model.Dimension;
-import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
-import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
-import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataResponse;
-import software.amazon.awssdk.services.cloudwatch.model.StandardUnit;
-import software.amazon.awssdk.services.cloudwatch.model.StatisticSet;
+import software.amazon.awssdk.services.cloudwatch.model.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -66,6 +52,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
     private static final int MAX_VALUE_LENGTH = 256;
 
     private static final MetricsCache METRICS_CACHE = new MetricsCache();
+    private static final String APPID = "AppId";
+    private static final String UNKNOWN = "UNKNOWN";
 
     public CloudWatchMetricsExporter(Supplier<SamplerConfig> samplerConfig) {
         super(samplerConfig);
@@ -79,11 +67,24 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         return data.getName();
     }
 
-    static List<Dimension> buildDimension(Attributes attributes) {
-        if (attributes.isEmpty()) {
-            return Collections.emptyList();
+    private static String getAppId() {
+        try {
+            String appId = Foundation.app().getAppId();
+            return appId == null ? UNKNOWN : appId;
+        } catch (Throwable e) {
+            return UNKNOWN;
         }
+    }
+
+    static List<Dimension> buildDimension(Attributes attributes) {
         List<Dimension> dimensions = new ArrayList<>();
+        dimensions.add(Dimension.builder()
+                .name(APPID)
+                .value(getAppId())
+                .build());
+        if (attributes.isEmpty()) {
+            return dimensions;
+        }
         attributes.forEach((key, value) -> {
             String valueStr = String.valueOf(value);
             if (valueStr.length() > MAX_VALUE_LENGTH) {
@@ -141,8 +142,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
             metricsMap.computeIfAbsent(
-                            getKey(namespace, metricName, millis, p.getAttributes()),
-                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+                    getKey(namespace, metricName, millis, p.getAttributes()),
+                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
                     .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
         });
     }
@@ -152,7 +153,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, p.getAttributes()),
-                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
                     .addPoint(p.getValue());
         });
     }
@@ -175,7 +176,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                 });
             }
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, d.getAttributes()),
-                            k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
+                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
                     .setStatisticSet(setBuilder.build());
         });
     }
@@ -286,7 +287,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
         private final AtomicInteger index = new AtomicInteger();
 
-        private ReadWriteLock[] locks = new ReadWriteLock[]{new ReentrantReadWriteLock(), new ReentrantReadWriteLock()};
+        private final ReadWriteLock[] locks = new ReadWriteLock[]{new ReentrantReadWriteLock(), new ReentrantReadWriteLock()};
 
         MetricsCache() {
         }
@@ -314,8 +315,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             try {
                 long millis = 0L;
                 histogramCache[currentIndex].computeIfAbsent(getKey(namespace, metricName, millis, attributes),
-                                k ->
-                                        new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
+                        k ->
+                                new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
                         .addPoint(value);
             } finally {
                 readLock.unlock();

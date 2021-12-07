@@ -122,7 +122,7 @@ public class CloudWatchLogsService {
                         ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
                         : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), statusCode))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE))
                             .add(COUNTER_NUM);
                 });
             } finally {
@@ -171,7 +171,7 @@ public class CloudWatchLogsService {
                         ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
                         : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE), statusCode))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE))
                             .add(COUNTER_NUM);
                 });
             } finally {
