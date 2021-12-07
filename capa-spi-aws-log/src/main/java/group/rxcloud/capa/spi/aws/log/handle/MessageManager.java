@@ -62,7 +62,6 @@ public class MessageManager {
         if (defaultChunkQueueMaxBytes > DEFAULT_CHUNK_QUEUE_MEM_BYTES) {
             defaultChunkQueueMaxBytes = DEFAULT_CHUNK_QUEUE_MEM_BYTES;
         }
-        //TODO 设置队列最大值
         chunkQueueMaxBytes = defaultChunkQueueMaxBytes;
         chunkQueue = new ChunkQueue(chunkQueueMaxBytes);
         sender = new MessageSender(chunkQueue);
