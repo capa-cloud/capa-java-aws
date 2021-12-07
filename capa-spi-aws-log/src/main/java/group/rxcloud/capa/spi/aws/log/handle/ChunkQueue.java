@@ -50,7 +50,7 @@ public class ChunkQueue {
         int length = chunk.getSize();
         if (bytes >= maxBytes) {
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (Exception e) {
 
             }
