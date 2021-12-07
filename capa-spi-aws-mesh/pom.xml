@@ -29,21 +29,15 @@
     <artifactId>capa-spi-aws-mesh</artifactId>
     <name>capa-skd-spi-aws-appmesh</name>
 
-    <properties>
-        <capa-serializer.version>1.0.3.RELEASE</capa-serializer.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-spi-aws-infrastructure</artifactId>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/group.rxcloud/capa-serializer -->
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-serializer</artifactId>
-            <version>${capa-serializer.version}</version>
         </dependency>
 
         <dependency>
