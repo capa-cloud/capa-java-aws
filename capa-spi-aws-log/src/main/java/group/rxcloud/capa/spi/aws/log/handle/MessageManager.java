@@ -33,7 +33,7 @@ public class MessageManager {
     private static final int DEFAULT_CHUNK_QUEUE_MEM_BYTES = 100 * 1024 * 1024;
     private static final String MESSAGE_MANAGER_ERROR_NAMESPACE = "LogMessageManagerError";
     private static final String MESSAGE_MANAGER_ERROR_METRIC_NAME = "LogsManagerError";
-    private static MessageManager messageManager;
+    private static volatile MessageManager messageManager;
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -70,16 +70,18 @@ public class MessageManager {
     }
 
     public static MessageManager getInstance() {
-        synchronized (lock) {
-            try {
+        if (messageManager == null) {
+            synchronized (lock) {
                 if (messageManager == null) {
-                    messageManager = new MessageManager();
+                    try {
+                        messageManager = new MessageManager();
+                    } catch (Throwable t) {
+                        LONG_COUNTER.ifPresent(longCounter -> {
+                            longCounter.bind(Attributes.of(AttributeKey.stringKey("ManagerGetInstanceError"), "ManagerGetInstanceError"))
+                                    .add(1);
+                        });
+                    }
                 }
-            } catch (Throwable t) {
-                LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey("ManagerGetInstanceError"), "ManagerGetInstanceError"))
-                            .add(1);
-                });
             }
         }
         return messageManager;
