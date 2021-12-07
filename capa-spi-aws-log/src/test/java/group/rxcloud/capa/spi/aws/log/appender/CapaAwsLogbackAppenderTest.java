@@ -1,11 +1,21 @@
 package group.rxcloud.capa.spi.aws.log.appender;
 
-import static org.junit.jupiter.api.Assertions.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
-/**
- * @Author gpeng
- * @Date 2021/12/6 21:29
- */
+@Slf4j
 class CapaAwsLogbackAppenderTest {
+    @Test
+    void appendLog() {
+        for (int i = 0; i < 30; i++) {
+            log.info("[[requestId=123456]]Test");
+        }
+        try {
+            Thread.sleep(30 * 1000);
+        } catch (InterruptedException e) {
 
+        } finally {
+
+        }
+    }
 }
