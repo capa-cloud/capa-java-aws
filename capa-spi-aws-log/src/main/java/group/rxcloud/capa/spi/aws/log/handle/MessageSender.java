@@ -65,12 +65,14 @@ public class MessageSender extends Thread {
     }
 
     private static void initFlowRules() {
-        FlowRule flowRule = new FlowRule();
-        flowRule.setResource(PUT_LOG_EVENTS_RESOURCE_NAME);
-        flowRule.setGrade(RuleConstant.FLOW_GRADE_QPS);
-        flowRule.setCount(1);
         List<FlowRule> flowRules = new ArrayList<>();
-        flowRules.add(flowRule);
+        for (int i = 0; i < 10; i++) {
+            FlowRule flowRule = new FlowRule();
+            flowRule.setResource(PUT_LOG_EVENTS_RESOURCE_NAME + "_" + i);
+            flowRule.setGrade(RuleConstant.FLOW_GRADE_QPS);
+            flowRule.setCount(5);
+            flowRules.add(flowRule);
+        }
         FlowRuleManager.loadRules(flowRules);
     }
 
@@ -92,7 +94,7 @@ public class MessageSender extends Thread {
             } catch (Throwable throwable) {
                 try {
                     LONG_COUNTER.ifPresent(longCounter -> {
-                        longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getMessage()))
+                        longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), "BuildCompressedChunkError"))
                                 .add(1);
                     });
                     Thread.sleep(100);
@@ -107,7 +109,6 @@ public class MessageSender extends Thread {
 
         long timeOut = System.currentTimeMillis() + (10 * 1000);
         while (System.currentTimeMillis() <= timeOut) {
-            //从队列中取数据
             buildCompressedChunk();
             if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
                 List<String> messages = this.getMessage();
@@ -116,13 +117,14 @@ public class MessageSender extends Thread {
                 break;
             }
         }
+        this.shutdownLatch.countDown();
     }
 
     private void doSendMessage(List<String> messages) {
         List<String> logStreamNames = CloudWatchLogsService.getLogStreamNames();
         Random random = new Random();
         int index = random.nextInt(logStreamNames.size());
-        try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME)) {
+        try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + "_" + index)) {
             CloudWatchLogsService.putLogEvents(messages, logStreamNames.get(index));
         } catch (BlockException blockException) {
             try {
@@ -133,7 +135,7 @@ public class MessageSender extends Thread {
             }
         } catch (Throwable throwable) {
             LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey("PutLogEventsError"), throwable.getMessage()))
+                longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), "SenderPutLogEventsError"))
                         .add(1);
             });
         }

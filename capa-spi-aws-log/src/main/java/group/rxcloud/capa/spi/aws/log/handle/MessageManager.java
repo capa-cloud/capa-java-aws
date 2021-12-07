@@ -62,7 +62,6 @@ public class MessageManager {
         if (defaultChunkQueueMaxBytes > DEFAULT_CHUNK_QUEUE_MEM_BYTES) {
             defaultChunkQueueMaxBytes = DEFAULT_CHUNK_QUEUE_MEM_BYTES;
         }
-        //TODO 设置队列最大值
         chunkQueueMaxBytes = defaultChunkQueueMaxBytes;
         chunkQueue = new ChunkQueue(chunkQueueMaxBytes);
         sender = new MessageSender(chunkQueue);
@@ -78,7 +77,7 @@ public class MessageManager {
                 }
             } catch (Throwable t) {
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey("ManagerGetInstanceError"), t.getMessage()))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey("ManagerGetInstanceError"), "ManagerGetInstanceError"))
                             .add(1);
                 });
             }
@@ -123,7 +122,7 @@ public class MessageManager {
                 MessageManager.getInstance().shutdown();
             } catch (Exception e) {
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey("ClientFinalizerError"), e.getMessage()))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey("ClientFinalizerError"), "ClientFinalizerError"))
                             .add(1);
                 });
             }

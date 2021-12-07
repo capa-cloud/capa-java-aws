@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.log.handle;
 
 public class MessageConsumer {
     
-    private final ChunkQueue chunkQueue;
+    private ChunkQueue chunkQueue;
 
     public MessageConsumer(ChunkQueue chunkQueue) {
         this.chunkQueue = chunkQueue;
