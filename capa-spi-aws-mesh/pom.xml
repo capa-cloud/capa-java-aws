@@ -23,7 +23,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.0.7-alpha-1</version>
+        <version>1.0.7.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-mesh</artifactId>
@@ -43,6 +43,16 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>appmesh</artifactId>
+        </dependency>
+
+        <!--http-->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
         </dependency>
 
         <!-- unit test -->
