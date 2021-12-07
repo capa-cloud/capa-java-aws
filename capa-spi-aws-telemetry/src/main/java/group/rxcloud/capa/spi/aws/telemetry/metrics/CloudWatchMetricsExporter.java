@@ -63,6 +63,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static final int MAX_METRIC_VALUE = 150;
 
+    private static final int MAX_VALUE_LENGTH = 256;
+
     private static final MetricsCache METRICS_CACHE = new MetricsCache();
 
     public CloudWatchMetricsExporter(Supplier<SamplerConfig> samplerConfig) {
@@ -83,9 +85,13 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         }
         List<Dimension> dimensions = new ArrayList<>();
         attributes.forEach((key, value) -> {
+            String valueStr = String.valueOf(value);
+            if (valueStr.length() > MAX_VALUE_LENGTH) {
+                valueStr = valueStr.substring(0, MAX_VALUE_LENGTH);
+            }
             dimensions.add(Dimension.builder()
                     .name(key.getKey())
-                    .value(String.valueOf(value))
+                    .value(valueStr)
                     .build());
         });
         dimensions.sort(new Comparator<Dimension>() {
@@ -219,17 +225,16 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
             List<Double> values = new ArrayList<>();
             List<Double> counts = new ArrayList<>();
-
             for (Map.Entry<Double, AtomicInteger> entry : c.metricPointCount.entrySet()) {
                 values.add(entry.getKey());
                 counts.add(Double.valueOf(entry.getValue().get()));
 
-                if (values.size() == MAX_METRIC_VALUE) {
+                if (values.size() >= MAX_METRIC_VALUE) {
                     data.add(build(c, values, counts));
                     values = new ArrayList<>();
                     counts = new ArrayList<>();
 
-                    if (data.size() == MAX_METRIC_DATUM) {
+                    if (data.size() >= MAX_METRIC_DATUM) {
                         send(namespace, data);
                         data = new ArrayList<>();
                     }
@@ -238,6 +243,10 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
             if (!values.isEmpty()) {
                 data.add(build(c, values, counts));
+                if (data.size() >= MAX_METRIC_DATUM) {
+                    send(namespace, data);
+                    data = new ArrayList<>();
+                }
             }
         }
 
@@ -245,6 +254,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             send(namespace, data);
         }
     }
+
 
     @Override
     protected CompletableResultCode doExport(Collection<MetricData> metrics) {

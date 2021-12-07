@@ -36,6 +36,11 @@
         </dependency>
 
         <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-foundation</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>appconfig</artifactId>
         </dependency>
@@ -66,11 +71,6 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>group.rxcloud</groupId>
-            <artifactId>capa-foundation</artifactId>
         </dependency>
     </dependencies>
 

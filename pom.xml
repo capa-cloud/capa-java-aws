@@ -78,6 +78,7 @@
         <capa.version>1.0.9.RELEASE</capa.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <guava.version>19.0</guava.version>
+        <capa-addons.version>1.0.5.RELEASE</capa-addons.version>
         <junit.version>5.3.1</junit.version>
         <mockito-core.version>3.6.0</mockito-core.version>
         <powermock.version>2.0.9</powermock.version>
@@ -90,7 +91,6 @@
         <maven.surefire.version>3.0.0-M1</maven.surefire.version>
         <maven.jacoco.version>0.8.6</maven.jacoco.version>
         <byte-buddy.version>1.12.2</byte-buddy.version>
-        <capa.foundation.version>1.0.4.RELEASE</capa.foundation.version>
     </properties>
 
     <dependencyManagement>
@@ -100,6 +100,14 @@
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-parent</artifactId>
                 <version>${capa.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-addons</artifactId>
+                <version>${capa-addons.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -173,12 +181,6 @@
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy.version}</version>
                 <scope>test</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>group.rxcloud</groupId>
-                <artifactId>capa-foundation</artifactId>
-                <version>${capa.foundation.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -367,7 +369,7 @@
                         <format>html</format>
                         <format>xml</format>
                     </formats>
-                    <check />
+                    <check/>
                 </configuration>
             </plugin>
             <plugin>
