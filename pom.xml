@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.6.RELEASE</version>
+    <version>1.0.7.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -90,6 +90,7 @@
         <maven.surefire.version>3.0.0-M1</maven.surefire.version>
         <maven.jacoco.version>0.8.6</maven.jacoco.version>
         <byte-buddy.version>1.12.2</byte-buddy.version>
+        <capa.foundation.version>1.0.4.RELEASE</capa.foundation.version>
     </properties>
 
     <dependencyManagement>
@@ -107,22 +108,22 @@
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-infrastructure</artifactId>
-                <version>1.0.6.RELEASE</version>
+                <version>1.0.7.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-mesh</artifactId>
-                <version>1.0.6.RELEASE</version>
+                <version>1.0.7.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
-                <version>1.0.6.RELEASE</version>
+                <version>1.0.7.RELEASE</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-telemetry</artifactId>
-                <version>1.0.6.RELEASE</version>
+                <version>1.0.7.RELEASE</version>
             </dependency>
 
             <dependency>
@@ -172,6 +173,12 @@
                 <artifactId>byte-buddy</artifactId>
                 <version>${byte-buddy.version}</version>
                 <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-foundation</artifactId>
+                <version>${capa.foundation.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

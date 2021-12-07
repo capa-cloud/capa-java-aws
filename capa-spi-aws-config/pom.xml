@@ -23,7 +23,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.0.6.RELEASE</version>
+        <version>1.0.7.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-config</artifactId>
@@ -66,6 +66,11 @@
             <groupId>net.bytebuddy</groupId>
             <artifactId>byte-buddy</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-foundation</artifactId>
         </dependency>
     </dependencies>
 

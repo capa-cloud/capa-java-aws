@@ -20,7 +20,8 @@ import com.google.gson.Gson;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
-import group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
+import group.rxcloud.capa.spi.aws.log.handle.MessageConsumer;
+import group.rxcloud.capa.spi.aws.log.handle.MessageManager;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.utils.StringUtils;
@@ -152,7 +153,8 @@ public class LogAppendManager {
         // put logs to CloudWatchLogs
         if (!logMessageMap.isEmpty()) {
             String logMessage = GSON.toJson(logMessageMap);
-            CloudWatchLogsService.putLogEvent(logMessage);
+            MessageConsumer consumer = MessageManager.getInstance().getConsumer();
+            consumer.processLogEvent(logMessage);
         }
     }
 

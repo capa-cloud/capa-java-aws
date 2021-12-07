@@ -17,6 +17,7 @@
 package group.rxcloud.capa.spi.aws.config;
 
 import com.google.common.collect.Lists;
+import group.rxcloud.capa.addons.foundation.trip.Foundation;
 import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
@@ -80,6 +81,8 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
     private AppConfigAsyncClient appConfigAsyncClient;
 
+    private static final String APPCONFIG_NAME_FORMAT="%s_%s";
+
     private static final Long REQUEST_TIMEOUT_IN_SECONDS = AwsCapaConfigurationProperties.AppConfigProperties.Settings.getRequestTimeoutInSeconds();
 
     /**
@@ -129,8 +132,8 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             LOGGER.warn("[Capa.Config] keys is null or empty,appId:{}", appId);
             return Mono.error(new CapaException(CapaErrorContext.PARAMETER_ERROR, "keys is null or empty"));
         }
-        // todo:need to get the specific env from system properties
-        String applicationName = appId + "_FAT";
+
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT,appId, Foundation.server().getEnv().getName());
         String configurationName = keys.get(0);
 
         GetConfigurationRequest request = GetConfigurationRequest.builder()
@@ -149,8 +152,8 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
     @Override
     protected <T> Flux<SubscribeResp<T>> doSubscribe(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
-        // todo: need to get the specific env from system properties
-        String applicationName = appId + "_FAT";
+
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT,appId, Foundation.server().getEnv().getName());
         String configurationName = keys.get(0);
 
         initSubscribe(applicationName, configurationName, group, label, metadata, type);

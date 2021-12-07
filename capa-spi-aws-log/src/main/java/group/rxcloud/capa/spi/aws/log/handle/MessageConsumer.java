@@ -14,21 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package group.rxcloud.capa.spi.aws.telemetry.metrics;
+package group.rxcloud.capa.spi.aws.log.handle;
 
-import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
+public class MessageConsumer {
+    
+    private final ChunkQueue chunkQueue;
 
-/**
- * Provide the single cloud watch client instance.
- */
-public final class CloudWatchClientProvider {
-
-    private static final CloudWatchClient CLIENT = CloudWatchClient.builder().build();
-
-    private CloudWatchClientProvider() {
+    public MessageConsumer(ChunkQueue chunkQueue) {
+        this.chunkQueue = chunkQueue;
     }
 
-    public static CloudWatchClient get() {
-        return CLIENT;
+    public synchronized void processLogEvent(String message) {
+        chunkQueue.offer(compressedChunk(message));
+    }
+
+    private CompressedChunk compressedChunk(String message) {
+        CompressedChunk compressedChunk = new CompressedChunk();
+        compressedChunk.setMessage(message);
+        compressedChunk.setSize(message.length());
+        return compressedChunk;
     }
 }
+
