@@ -36,9 +36,6 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
-/**
- * 消息发送者，监听日志队列并选择具体日志收集者进行日志输出
- */
 public class MessageSender extends Thread {
     private static final int MAX_COUNT_PER_CHUNK = 100;
     private static final int MAX_SIZE_PER_CHUNK = 1 * 1024 * 1024;
@@ -77,14 +74,10 @@ public class MessageSender extends Thread {
         FlowRuleManager.loadRules(flowRules);
     }
 
-    /**
-     * 从队列中拉出数据并且组合成一个list进行发送
-     */
     @Override
     public void run() {
         while (running) {
             try {
-                //从队列中取数据
                 buildCompressedChunk();
                 if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
                     List<String> messages = this.getMessage();
