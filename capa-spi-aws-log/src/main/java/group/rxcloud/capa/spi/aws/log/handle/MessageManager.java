@@ -21,6 +21,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -54,7 +55,7 @@ public class MessageManager {
 
     private MessageManager() {
         Runtime runtime = Runtime.getRuntime();
-        runtime.addShutdownHook(new ClientFinalizer());
+        runtime.addShutdownHook(new ClientFinalizer("AWSManager-ClientFinalizer"));
 
         long maxMemory = runtime.maxMemory();
         int defaultChunkQueueMaxBytes = (int) (maxMemory * DEFAULT_CHUNK_QUEUE_MEM_PERCENT);
@@ -112,6 +113,10 @@ public class MessageManager {
     }
 
     class ClientFinalizer extends Thread {
+        public ClientFinalizer(@NotNull String name) {
+            super(name);
+        }
+
         @Override
         public void run() {
             try {
