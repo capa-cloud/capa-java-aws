@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.7.RELEASE</version>
+    <version>1.10.9.2.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -119,22 +119,27 @@
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-infrastructure</artifactId>
-                <version>1.0.7.RELEASE</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-mesh</artifactId>
-                <version>1.0.7.RELEASE</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-config</artifactId>
-                <version>1.0.7.RELEASE</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>group.rxcloud</groupId>
                 <artifactId>capa-spi-aws-telemetry</artifactId>
-                <version>1.0.7.RELEASE</version>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>group.rxcloud</groupId>
+                <artifactId>capa-spi-aws-log</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
