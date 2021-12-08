@@ -86,7 +86,7 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
             try {
                 //Enhance function without affecting function
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), e.getMessage()))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), LOG_LOG4J_APPENDER_ERROR_TYPE))
                             .add(COUNTER_NUM);
                 });
             } finally {

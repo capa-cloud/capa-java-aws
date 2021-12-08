@@ -45,6 +45,16 @@
             <artifactId>appmesh</artifactId>
         </dependency>
 
+        <!--http-->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+
         <!-- unit test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
