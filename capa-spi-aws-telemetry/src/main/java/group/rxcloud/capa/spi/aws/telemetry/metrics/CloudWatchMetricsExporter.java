@@ -22,11 +22,13 @@ import group.rxcloud.capa.spi.telemetry.CapaMetricsExporterSpi;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.DoublePointData;
 import io.opentelemetry.sdk.metrics.data.DoubleSummaryPointData;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.data.MetricDataType;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.cloudwatch.model.Dimension;
@@ -66,7 +68,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
     private static final int MAX_VALUE_LENGTH = 256;
 
     private static final MetricsCache METRICS_CACHE = new MetricsCache();
+
     private static final String APPID = "AppId";
+
     private static final String UNKNOWN = "UNKNOWN";
 
     public CloudWatchMetricsExporter(Supplier<SamplerConfig> samplerConfig) {
@@ -93,9 +97,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
     static List<Dimension> buildDimension(Attributes attributes) {
         List<Dimension> dimensions = new ArrayList<>();
         dimensions.add(Dimension.builder()
-                .name(APPID)
-                .value(getAppId())
-                .build());
+                                .name(APPID)
+                                .value(getAppId())
+                                .build());
         if (attributes.isEmpty()) {
             return dimensions;
         }
@@ -105,9 +109,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                 valueStr = valueStr.substring(0, MAX_VALUE_LENGTH);
             }
             dimensions.add(Dimension.builder()
-                    .name(key.getKey())
-                    .value(valueStr)
-                    .build());
+                                    .name(key.getKey())
+                                    .value(valueStr)
+                                    .build());
         });
         dimensions.sort(new Comparator<Dimension>() {
             @Override
@@ -139,7 +143,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
         Map<String, List<CollectedMetrics>> metricsMapGroupByNamespace = new HashMap<>();
         metricsMap.values()
-                .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.nameSpace, k -> new ArrayList<>()).add(m));
+                  .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.nameSpace, k -> new ArrayList<>()).add(m));
         return metricsMapGroupByNamespace;
     }
 
@@ -158,7 +162,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             metricsMap.computeIfAbsent(
                     getKey(namespace, metricName, millis, p.getAttributes()),
                     k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
-                    .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
+                      .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
         });
     }
 
@@ -168,7 +172,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, p.getAttributes()),
                     k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
-                    .addPoint(p.getValue());
+                      .addPoint(p.getValue());
         });
     }
 
@@ -178,8 +182,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         data.forEach(d -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(d.getEpochNanos());
             StatisticSet.Builder setBuilder = StatisticSet.builder()
-                    .sum(d.getSum())
-                    .sampleCount(BigDecimal.valueOf(d.getCount()).doubleValue());
+                                                          .sum(d.getSum())
+                                                          .sampleCount(BigDecimal.valueOf(d.getCount()).doubleValue());
             if (d.getPercentileValues() != null) {
                 d.getPercentileValues().forEach(percentile -> {
                     if (Double.compare(0, percentile.getPercentile()) == 0) {
@@ -191,15 +195,15 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             }
             metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, d.getAttributes()),
                     k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
-                    .setStatisticSet(setBuilder.build());
+                      .setStatisticSet(setBuilder.build());
         });
     }
 
     private static void send(String namespace, List<MetricDatum> data) {
         if (data != null && !data.isEmpty()) {
             PutMetricDataRequest request = PutMetricDataRequest.builder()
-                    .namespace(namespace)
-                    .metricData(data).build();
+                                                               .namespace(namespace)
+                                                               .metricData(data).build();
             PutMetricDataResponse response = CloudWatchClientProvider.get().putMetricData(request);
             if (!response.sdkHttpResponse().isSuccessful()) {
                 log.info("Fail to export metrics to cloud watch. statusCode={}, msg={}.",
@@ -224,13 +228,13 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static MetricDatum build(CollectedMetrics c, List<Double> values, List<Double> counts) {
         return MetricDatum.builder()
-                .metricName(c.metricName)
-                .unit(StandardUnit.NONE)
-                .timestamp(c.instant)
-                .dimensions(c.dimensions)
-                .statisticValues(c.statisticSet)
-                .values(values)
-                .counts(counts).build();
+                          .metricName(c.metricName)
+                          .unit(StandardUnit.NONE)
+                          .timestamp(c.instant)
+                          .dimensions(c.dimensions)
+                          .statisticValues(c.statisticSet)
+                          .values(values)
+                          .counts(counts).build();
     }
 
     private static void convertAndSend(String namespace, List<CollectedMetrics> list) {
@@ -270,6 +274,11 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         }
     }
 
+    @Nullable
+    @Override
+    public AggregationTemporality getPreferredTemporality() {
+        return AggregationTemporality.DELTA;
+    }
 
     @Override
     protected CompletableResultCode doExport(Collection<MetricData> metrics) {
@@ -301,7 +310,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
         private final AtomicInteger index = new AtomicInteger();
 
-        private final ReadWriteLock[] locks = new ReadWriteLock[]{new ReentrantReadWriteLock(), new ReentrantReadWriteLock()};
+        private final ReadWriteLock[] locks = new ReadWriteLock[]{new ReentrantReadWriteLock(),
+                new ReentrantReadWriteLock()};
 
         MetricsCache() {
         }
@@ -331,7 +341,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                 histogramCache[currentIndex].computeIfAbsent(getKey(namespace, metricName, millis, attributes),
                         k ->
                                 new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
-                        .addPoint(value);
+                                            .addPoint(value);
             } finally {
                 readLock.unlock();
             }
