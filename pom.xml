@@ -69,13 +69,14 @@
         <module>capa-spi-aws-telemetry</module>
         <module>capa-spi-aws-infrastructure</module>
         <module>capa-spi-aws-log</module>
+        <module>example</module>
     </modules>
 
     <properties>
         <java.version>8</java.version>
         <file.encoding>UTF-8</file.encoding>
         <maven.version>3.8.1</maven.version>
-        <capa.version>1.10.9.2.RELEASE</capa.version>
+        <capa.version>1.10.10.RELEASE</capa.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <guava.version>19.0</guava.version>
         <capa-addons.version>1.0.5.RELEASE</capa-addons.version>

@@ -18,7 +18,9 @@ package group.rxcloud.capa.spi.aws.log.appender;
 
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
+import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
+import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLog4jAppenderSpi;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -78,10 +80,13 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                     || event.getMessage() == null) {
                 return;
             }
-            String message = event.getMessage().getFormattedMessage();
-            ReadOnlyStringMap contextData = event.getContextData();
-            Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
-            LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name());
+            Optional<CapaLogLevel> capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().name());
+            if(capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())){
+                String message = event.getMessage().getFormattedMessage();
+                ReadOnlyStringMap contextData = event.getContextData();
+                Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
+                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name());
+            }
         } catch (Exception e) {
             try {
                 //Enhance function without affecting function

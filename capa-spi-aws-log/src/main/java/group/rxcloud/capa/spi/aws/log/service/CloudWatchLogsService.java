@@ -60,7 +60,6 @@ public class CloudWatchLogsService {
     private static final String CLOUD_WATCH_LOGS_ERROR_METRIC_NAME = "LogsError";
     private static final String CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE = "PutLogEventError";
     private static final String CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE = "PutLogEventsError";
-    private static final String CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE = "NULL";
     private static final Integer COUNTER_NUM = 1;
 
     private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
@@ -118,9 +117,6 @@ public class CloudWatchLogsService {
                 || !putLogEventsResponse.sdkHttpResponse().isSuccessful()) {
             try {
                 //Enhance function without affecting function
-                String statusCode = putLogEventsResponse == null || putLogEventsResponse.sdkHttpResponse() == null
-                        ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
-                        : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
                 LONG_COUNTER.ifPresent(longCounter -> {
                     longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE))
                             .add(COUNTER_NUM);
@@ -167,9 +163,6 @@ public class CloudWatchLogsService {
                 || !putLogEventsResponse.sdkHttpResponse().isSuccessful()) {
             try {
                 //Enhance function without affecting function
-                String statusCode = putLogEventsResponse == null || putLogEventsResponse.sdkHttpResponse() == null
-                        ? CLOUD_WATCH_LOGS_RESPONSE_NULL_VALUE
-                        : String.valueOf(putLogEventsResponse.sdkHttpResponse().statusCode());
                 LONG_COUNTER.ifPresent(longCounter -> {
                     longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE))
                             .add(COUNTER_NUM);
