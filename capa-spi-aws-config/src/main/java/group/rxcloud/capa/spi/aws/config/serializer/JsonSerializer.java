@@ -43,7 +43,7 @@ public class JsonSerializer implements Serializer {
         try {
             content = objectSerializer.deserialize(contentSdkBytes.asByteArray(), type);
         } catch (IOException e) {
-            LOGGER.error("error accurs when deserializing,content:{},typeName:{}", contentSdkBytes.asUtf8String(), type.getType().getTypeName(), e);
+            LOGGER.error("error occurs when deserializing,content:{},typeName:{}", contentSdkBytes.asUtf8String(), type.getType().getTypeName(), e);
         }
         return content;
     }

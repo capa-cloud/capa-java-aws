@@ -18,7 +18,6 @@ package group.rxcloud.capa.spi.aws.log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
-import group.rxcloud.capa.addons.foundation.trip.Foundation;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
@@ -173,12 +172,9 @@ public class CloudWatchLogsService {
     }
 
     public static List<String> getLogStreamNames() {
-        String ip = Foundation.net().getHostAddress() == null
-                ? UNKNOWN
-                : Foundation.net().getHostAddress();
         List<String> logStreamNames = new ArrayList<>();
         for (int i = 0; i < DEFAULT_MAX_LOG_STREAM_COUNT; i++) {
-            logStreamNames.add(String.format(LOG_STREAM_FORMAT, APP_ID, ip, i));
+            logStreamNames.add(String.format(LOG_STREAM_FORMAT, APP_ID, UNKNOWN, i));
         }
         return logStreamNames;
     }
