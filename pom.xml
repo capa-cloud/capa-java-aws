@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.10.10.1.RELEASE</version>
+    <version>1.10.12.1.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -76,7 +76,7 @@
         <java.version>8</java.version>
         <file.encoding>UTF-8</file.encoding>
         <maven.version>3.8.1</maven.version>
-        <capa.version>1.10.10.RELEASE</capa.version>
+        <capa.version>1.10.12.RELEASE</capa.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <guava.version>19.0</guava.version>
         <capa-addons.version>1.0.6.RELEASE</capa-addons.version>
@@ -325,129 +325,129 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.rat</groupId>
-                <artifactId>apache-rat-plugin</artifactId>
-                <version>${apache.rat.version}</version>
-                <executions>
-                    <execution>
-                        <id>rat-validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.versionsBackup</exclude>
-                        <exclude>**/.idea/</exclude>
-                        <exclude>**/*.iml</exclude>
-                        <exclude>**/*.txt</exclude>
-                        <exclude>**/*.load</exclude>
-                        <exclude>**/*.flex</exclude>
-                        <exclude>**/*.fc</exclude>
-                        <exclude>**/*.properties</exclude>
-                        <exclude>**/*.sh</exclude>
-                        <exclude>**/*.bat</exclude>
-                        <exclude>**/*.md</exclude>
-                        <exclude>**/*.json</exclude>
-                        <exclude>.git/</exclude>
-                        <exclude>.gitignore</exclude>
-                        <!-- ASF jenkins box puts the Maven repo in our root directory. -->
-                        <exclude>.repository/</exclude>
-                        <exclude>**/.settings/*</exclude>
-                        <exclude>**/.classpath</exclude>
-                        <exclude>**/.project</exclude>
-                        <exclude>**/target/**</exclude>
-                        <exclude>**/*.log</exclude>
-                        <exclude>.codecov.yml</exclude>
-                        <exclude>.travis.yml</exclude>
-                        <exclude>PULL_REQUEST_TEMPLATE.md</exclude>
-                        <exclude>CONTRIBUTING.md</exclude>
-                        <exclude>README.md</exclude>
-                        <exclude>Jenkinsfile</exclude>
-                        <exclude>**/codestyle/*</exclude>
-                        <exclude>**/resources/META-INF/**</exclude>
-                        <exclude>.github/**</exclude>
-                        <exclude>codestyle/**</exclude>
-                        <exclude>**/generated/**</exclude>
-                    </excludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>${cobertura.maven.version}</version>
-                <configuration>
-                    <formats>
-                        <format>html</format>
-                        <format>xml</format>
-                    </formats>
-                    <check/>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${maven.jacoco.version}</version>
-                <executions>
-                    <!-- Prepares the property pointing to the JaCoCo runtime agent
-                    which is passed as VM argument when Maven the Surefire plugin is executed. -->
-                    <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!-- Ensures that the code coverage report is created after
-                    all tests have been run. -->
-                    <execution>
-                        <id>generate-report</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-javadoc-plugin</artifactId>-->
+<!--                <version>3.2.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>attach-javadocs</id>-->
+<!--                        <goals>-->
+<!--                            <goal>jar</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.rat</groupId>-->
+<!--                <artifactId>apache-rat-plugin</artifactId>-->
+<!--                <version>${apache.rat.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>rat-validate</id>-->
+<!--                        <phase>validate</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--                <configuration>-->
+<!--                    <excludes>-->
+<!--                        <exclude>**/*.versionsBackup</exclude>-->
+<!--                        <exclude>**/.idea/</exclude>-->
+<!--                        <exclude>**/*.iml</exclude>-->
+<!--                        <exclude>**/*.txt</exclude>-->
+<!--                        <exclude>**/*.load</exclude>-->
+<!--                        <exclude>**/*.flex</exclude>-->
+<!--                        <exclude>**/*.fc</exclude>-->
+<!--                        <exclude>**/*.properties</exclude>-->
+<!--                        <exclude>**/*.sh</exclude>-->
+<!--                        <exclude>**/*.bat</exclude>-->
+<!--                        <exclude>**/*.md</exclude>-->
+<!--                        <exclude>**/*.json</exclude>-->
+<!--                        <exclude>.git/</exclude>-->
+<!--                        <exclude>.gitignore</exclude>-->
+<!--                        &lt;!&ndash; ASF jenkins box puts the Maven repo in our root directory. &ndash;&gt;-->
+<!--                        <exclude>.repository/</exclude>-->
+<!--                        <exclude>**/.settings/*</exclude>-->
+<!--                        <exclude>**/.classpath</exclude>-->
+<!--                        <exclude>**/.project</exclude>-->
+<!--                        <exclude>**/target/**</exclude>-->
+<!--                        <exclude>**/*.log</exclude>-->
+<!--                        <exclude>.codecov.yml</exclude>-->
+<!--                        <exclude>.travis.yml</exclude>-->
+<!--                        <exclude>PULL_REQUEST_TEMPLATE.md</exclude>-->
+<!--                        <exclude>CONTRIBUTING.md</exclude>-->
+<!--                        <exclude>README.md</exclude>-->
+<!--                        <exclude>Jenkinsfile</exclude>-->
+<!--                        <exclude>**/codestyle/*</exclude>-->
+<!--                        <exclude>**/resources/META-INF/**</exclude>-->
+<!--                        <exclude>.github/**</exclude>-->
+<!--                        <exclude>codestyle/**</exclude>-->
+<!--                        <exclude>**/generated/**</exclude>-->
+<!--                    </excludes>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>cobertura-maven-plugin</artifactId>-->
+<!--                <version>${cobertura.maven.version}</version>-->
+<!--                <configuration>-->
+<!--                    <formats>-->
+<!--                        <format>html</format>-->
+<!--                        <format>xml</format>-->
+<!--                    </formats>-->
+<!--                    <check/>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.jacoco</groupId>-->
+<!--                <artifactId>jacoco-maven-plugin</artifactId>-->
+<!--                <version>${maven.jacoco.version}</version>-->
+<!--                <executions>-->
+<!--                    &lt;!&ndash; Prepares the property pointing to the JaCoCo runtime agent-->
+<!--                    which is passed as VM argument when Maven the Surefire plugin is executed. &ndash;&gt;-->
+<!--                    <execution>-->
+<!--                        <id>prepare-agent</id>-->
+<!--                        <goals>-->
+<!--                            <goal>prepare-agent</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                    &lt;!&ndash; Ensures that the code coverage report is created after-->
+<!--                    all tests have been run. &ndash;&gt;-->
+<!--                    <execution>-->
+<!--                        <id>generate-report</id>-->
+<!--                        <goals>-->
+<!--                            <goal>report</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-gpg-plugin</artifactId>-->
+<!--                <version>1.6</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>sign-artifacts</id>-->
+<!--                        <phase>verify</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>sign</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.sonatype.plugins</groupId>-->
+<!--                <artifactId>nexus-staging-maven-plugin</artifactId>-->
+<!--                <version>1.6.7</version>-->
+<!--                <extensions>true</extensions>-->
+<!--                <configuration>-->
+<!--                    <serverId>ossrh</serverId>-->
+<!--                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>-->
+<!--                    <autoReleaseAfterClose>true</autoReleaseAfterClose>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
