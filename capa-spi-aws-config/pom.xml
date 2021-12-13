@@ -23,11 +23,10 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.10.10.1.RELEASE</version>
+        <version>1.10.12.1.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-config</artifactId>
-    <name>capa-skd-spi-aws-appconfig</name>
 
     <dependencies>
         <dependency>

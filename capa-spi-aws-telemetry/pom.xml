@@ -23,11 +23,10 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.10.10.1.RELEASE</version>
+        <version>1.10.12.1.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-telemetry</artifactId>
-    <name>capa-skd-spi-aws-cloudwatch</name>
 
     <properties>
         <slf4j.version>1.7.21</slf4j.version>
