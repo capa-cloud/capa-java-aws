@@ -38,7 +38,8 @@ import java.util.concurrent.CountDownLatch;
 
 public class MessageSender extends Thread {
     private static final int MAX_COUNT_PER_CHUNK = 100;
-    private static final int MAX_SIZE_PER_CHUNK = 1 * 1024 * 1024;
+    private static final long WAIT_INTERVAL = 20L;
+    private static final int MAX_SIZE_PER_CHUNK = 1024 * 1024;
     private static final String PUT_LOG_EVENTS_RESOURCE_NAME = "CloudWatchLogs.putLogEvents";
     private static final String MESSAGE_SENDER_ERROR_NAMESPACE = "LogMessageSenderError";
     private static final String MESSAGE_SENDER_ERROR_METRIC_NAME = "LogsSenderError";
@@ -82,32 +83,25 @@ public class MessageSender extends Thread {
             try {
                 buildCompressedChunk();
                 if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
-                    List<String> messages = this.getMessage();
-                    this.doSendMessage(messages);
+                    List<String> messages = getMessage();
+                    doSendMessage(messages);
                 } else {
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(WAIT_INTERVAL);
                     } catch (InterruptedException e) {
                         // ignore it
                     }
                 }
             } catch (Throwable throwable) {
-                try {
-                    LONG_COUNTER.ifPresent(longCounter -> {
-                        longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), "BuildCompressedChunkError"))
-                                .add(1);
-                    });
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    // ignore it
-                } finally {
-
-                }
+                LONG_COUNTER.ifPresent(longCounter -> {
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), "BuildCompressedChunkError"))
+                            .add(1);
+                });
 
             }
         }
 
-        long timeOut = System.currentTimeMillis() + (10 * 1000);
+        long timeOut = System.currentTimeMillis() + 60 * 1000;
         while (System.currentTimeMillis() <= timeOut) {
             buildCompressedChunk();
             if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
@@ -124,11 +118,11 @@ public class MessageSender extends Thread {
         List<String> logStreamNames = CloudWatchLogsService.getLogStreamNames();
         Random random = new Random();
         int index = random.nextInt(logStreamNames.size());
-        try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + "_" + index)) {
+        try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + '_' + index)) {
             CloudWatchLogsService.putLogEvents(messages, logStreamNames.get(index));
         } catch (BlockException blockException) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(WAIT_INTERVAL);
                 doSendMessage(messages);
             } catch (Exception exception) {
 
