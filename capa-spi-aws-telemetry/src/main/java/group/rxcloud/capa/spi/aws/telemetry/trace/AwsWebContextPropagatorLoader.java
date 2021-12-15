@@ -16,9 +16,11 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
+import com.google.common.collect.Lists;
 import group.rxcloud.capa.spi.telemetry.ContextPropagatorLoaderSpi;
-import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+
+import java.util.List;
 
 /**
  * Load ContextPropagator for ctrip.
@@ -26,8 +28,7 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 public class AwsWebContextPropagatorLoader extends ContextPropagatorLoaderSpi {
 
     @Override
-    public ContextPropagators load() {
-        return ContextPropagators
-                .create(TextMapPropagator.composite(TraceIdRpcContextPropagator.getInstance()));
+    public List<TextMapPropagator> load() {
+        return Lists.newArrayList(TraceIdRpcContextPropagator.getInstance());
     }
 }

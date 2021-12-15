@@ -16,7 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.metrics;
 
-import group.rxcloud.capa.addons.foundation.trip.Foundation;
+
+import com.ctrip.framework.foundation.Foundation;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
 import group.rxcloud.capa.spi.telemetry.CapaMetricsExporterSpi;
 import io.opentelemetry.api.common.Attributes;

@@ -18,7 +18,6 @@ package group.rxcloud.capa.spi.aws.log.service;
 
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
-import group.rxcloud.capa.addons.foundation.trip.Foundation;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
@@ -44,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public class CloudWatchLogsService {
 
@@ -64,7 +64,7 @@ public class CloudWatchLogsService {
 
     private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
     private static final int DEFAULT_MAX_LOG_STREAM_COUNT = 10;
-    private static final String UNKNOWN = "UNKNOWN";
+    private static final List<String> LOG_STREAM_NAMES = new ArrayList<>();
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -80,6 +80,8 @@ public class CloudWatchLogsService {
             LongCounter longCounter = meter.counterBuilder(CLOUD_WATCH_LOGS_ERROR_METRIC_NAME).build();
             LONG_COUNTER = Optional.ofNullable(longCounter);
         });
+
+
     }
 
     //Synchronously put log event
@@ -172,17 +174,6 @@ public class CloudWatchLogsService {
         }
     }
 
-    public static List<String> getLogStreamNames() {
-        String ip = Foundation.net().getHostAddress() == null
-                ? UNKNOWN
-                : Foundation.net().getHostAddress();
-        List<String> logStreamNames = new ArrayList<>();
-        for (int i = 0; i < DEFAULT_MAX_LOG_STREAM_COUNT; i++) {
-            logStreamNames.add(String.format(LOG_STREAM_FORMAT, APP_ID, ip, i));
-        }
-        return logStreamNames;
-    }
-
     private static String buildAppId() {
         return CapaFoundation.getAppId(FoundationType.TRIP);
     }
@@ -223,8 +214,8 @@ public class CloudWatchLogsService {
 
     private static void createLogStream() {
         try {
-            List<String> logStreamNames = getLogStreamNames();
-            for (String logStreamName : logStreamNames) {
+            createLogStreamNames();
+            for (String logStreamName : LOG_STREAM_NAMES) {
                 //Describe log stream to confirm whether the log stream has been created.
                 DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()
                         .logGroupName(LOG_GROUP_NAME)
@@ -254,5 +245,15 @@ public class CloudWatchLogsService {
             // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_STREAM_ERROR);
             throw new CapaException(e);
         }
+    }
+
+    private static void createLogStreamNames() {
+        for (int i = 0; i < DEFAULT_MAX_LOG_STREAM_COUNT; i++) {
+            LOG_STREAM_NAMES.add(String.format(LOG_STREAM_FORMAT, APP_ID, UUID.randomUUID().toString(), i));
+        }
+    }
+
+    public static List<String> getLogStreamNames() {
+        return LOG_STREAM_NAMES;
     }
 }

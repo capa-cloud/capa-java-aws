@@ -16,8 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.config;
 
+import com.ctrip.framework.foundation.Foundation;
 import com.google.common.collect.Lists;
-import group.rxcloud.capa.addons.foundation.trip.Foundation;
 import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
@@ -187,11 +187,11 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                 .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                 .build();
 
-        LOGGER.info("[Capa.Config.initConfig] call getconfiguration in init process,request:{}", request);
+        LOGGER.debug("[Capa.Config.initConfig] call getconfiguration in init process,request:{}", request);
 
         return Mono.fromCallable(() -> {
             GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-            LOGGER.info("[Capa.Config.initConfig] call getconfiguration in init process,response:{}", response);
+            LOGGER.debug("[Capa.Config.initConfig] call getconfiguration in init process,response:{}", response);
             return response;
         })
                 .doOnError(e -> LOGGER.error("[initConfig] error occurs when getconfiguration in init process, request:{}", request, e))
@@ -228,7 +228,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                                 .clientConfigurationVersion(version)
                                 .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
                                 .build();
-                        LOGGER.info("[Capa.Config.subscribePolling] subscribe polling task start,request:{}", request);
+                        LOGGER.debug("[Capa.Config.subscribePolling] subscribe polling task start,request:{}", request);
 
                         GetConfigurationResponse resp = null;
                         try {
@@ -238,7 +238,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                             LOGGER.error("[Capa.Config.subscribePolling] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
                         }
 
-                        LOGGER.info("[Capa.Config.subscribePolling] subscribe polling task end,response:{}", resp);
+                        LOGGER.debug("[Capa.Config.subscribePolling] subscribe polling task end,response:{}", resp);
 
                         if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
                             fluxSink.next(resp);

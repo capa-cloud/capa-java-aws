@@ -23,7 +23,7 @@
     <groupId>group.rxcloud</groupId>
     <artifactId>capa-aws-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.10.11.1.RELEASE</version>
+    <version>1.10.12.1.RELEASE</version>
     <name>capa-aws-parent</name>
     <description>AWS for Capa.</description>
     <url>https://github.com/reactivegroup</url>
@@ -76,9 +76,9 @@
         <java.version>8</java.version>
         <file.encoding>UTF-8</file.encoding>
         <maven.version>3.8.1</maven.version>
-        <capa.version>1.10.11.RELEASE</capa.version>
+        <capa.version>1.10.12.RELEASE</capa.version>
         <aws-sdk.version>2.17.40</aws-sdk.version>
-        <guava.version>31.0-jre</guava.version>
+        <guava.version>19.0</guava.version>
         <capa-addons.version>1.0.6.RELEASE</capa-addons.version>
         <junit.version>5.3.1</junit.version>
         <mockito-core.version>3.6.0</mockito-core.version>
@@ -158,7 +158,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- http -->
+            <!--http-->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>
