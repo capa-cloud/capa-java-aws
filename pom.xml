@@ -67,8 +67,8 @@
         <module>capa-spi-aws-mesh</module>
         <module>capa-spi-aws-config</module>
         <module>capa-spi-aws-telemetry</module>
-        <module>capa-spi-aws-infrastructure</module>
         <module>capa-spi-aws-log</module>
+        <module>capa-spi-aws-infrastructure</module>
         <module>example</module>
     </modules>
 
@@ -80,6 +80,10 @@
         <aws-sdk.version>2.17.40</aws-sdk.version>
         <guava.version>19.0</guava.version>
         <capa-addons.version>1.0.6.RELEASE</capa-addons.version>
+        <http.client.version>4.5.13</http.client.version>
+        <netty.bom.version>4.1.68.Final</netty.bom.version>
+        <http.core.version>4.4.11</http.core.version>
+        <byte-buddy.version>1.12.2</byte-buddy.version>
         <junit.version>5.3.1</junit.version>
         <mockito-core.version>3.6.0</mockito-core.version>
         <powermock.version>2.0.9</powermock.version>
@@ -91,10 +95,6 @@
         <maven.resource.version>3.2.0</maven.resource.version>
         <maven.surefire.version>3.0.0-M1</maven.surefire.version>
         <maven.jacoco.version>0.8.6</maven.jacoco.version>
-        <byte-buddy.version>1.12.2</byte-buddy.version>
-        <http.client.version>4.5.13</http.client.version>
-        <netty.bom.version>4.1.68.Final</netty.bom.version>
-        <http.core.version>4.4.11</http.core.version>
     </properties>
 
     <dependencyManagement>
@@ -158,7 +158,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!--http-->
+            <!-- aws http client -->
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-bom</artifactId>

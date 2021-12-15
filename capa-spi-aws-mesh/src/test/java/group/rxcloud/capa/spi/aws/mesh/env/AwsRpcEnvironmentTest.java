@@ -37,6 +37,6 @@ public class AwsRpcEnvironmentTest {
     @Test
     public void testGetNamespace_SuccessWhenDefault() {
         String namespace = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshNamespace();
-        Assertions.assertEquals("FWS", namespace);
+        Assertions.assertEquals("meshnamespace", namespace);
     }
 }

@@ -35,10 +35,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 /**
@@ -78,6 +80,30 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                 urlParameters,
                 type,
                 (AwsRpcServiceOptions) rpcServiceOptions);
+    }
+
+    private static final String ACCEPT_KEY = "accept";
+    private static final String ACCEPT_ALL = "*/*";
+
+    private void setRequestHeaderOfAccept(Map<String, String> headers, RequestBody body) {
+        final List<String> accepts = new ArrayList<>(3);
+        // 1. set user accept header
+        final String userAcceptValue = headers.get(ACCEPT_KEY);
+        if (userAcceptValue != null && userAcceptValue.length() > 0) {
+            accepts.add(userAcceptValue);
+        }
+        // 2. set accept header same with content-type
+        final String contentType = body.contentType().toString();
+        if (contentType != null && contentType.length() > 0) {
+            accepts.add(contentType);
+        }
+        // 3. add */* at last
+        accepts.add(ACCEPT_ALL);
+
+        final String acceptStr = accepts.stream()
+                .distinct()
+                .collect(Collectors.joining(","));
+        headers.put(ACCEPT_KEY, acceptStr);
     }
 
     private interface AwsHttpInvoker {
@@ -198,6 +224,9 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                   TypeRef<T> type) {
             // generate http request body
             RequestBody body = getRequestBodyWithSerialize(requestData, headers);
+
+            setRequestHeaderOfAccept(headers, body);
+
             Headers header = getRequestHeaderWithParams(headers);
 
             // make http request

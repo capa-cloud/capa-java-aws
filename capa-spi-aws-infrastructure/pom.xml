@@ -37,6 +37,11 @@
             <artifactId>capa-sdk-spi</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>group.rxcloud</groupId>
+            <artifactId>capa-foundation</artifactId>
+        </dependency>
+
         <!-- unit test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
