@@ -17,6 +17,8 @@
 package group.rxcloud.capa.spi.aws.log.service;
 
 import com.ctrip.framework.foundation.Foundation;
+import group.rxcloud.capa.addons.foundation.CapaFoundation;
+import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
@@ -160,11 +162,11 @@ public class CloudWatchLogsService {
     }
 
     private static String buildAppId() {
-        return Foundation.app().getAppId();
+        return CapaFoundation.getAppId(FoundationType.TRIP);
     }
 
     private static String buildApplicationEnv() {
-        return Foundation.server().getEnv().getName().toLowerCase();
+        return CapaFoundation.getEnv(FoundationType.TRIP);
     }
 
     private static void createLogGroup() {
