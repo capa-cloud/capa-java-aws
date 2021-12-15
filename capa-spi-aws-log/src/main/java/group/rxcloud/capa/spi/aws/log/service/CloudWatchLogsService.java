@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.log.service;
 
-import com.ctrip.framework.foundation.Foundation;
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
