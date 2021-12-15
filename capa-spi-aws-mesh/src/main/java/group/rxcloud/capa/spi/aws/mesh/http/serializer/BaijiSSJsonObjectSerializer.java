@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.mesh.http.serializer;
 
 import group.rxcloud.capa.addons.serializer.CapaSerializer;
 import group.rxcloud.capa.addons.serializer.baiji.ssjson.SSJsonSerializer;
-import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
+import group.rxcloud.capa.infrastructure.serializer.AbstractObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 
 import java.io.ByteArrayInputStream;
@@ -28,19 +28,19 @@ import java.io.IOException;
 /**
  * Serializes and deserializes the object with baiji.
  */
-public class BaijiSSJsonObjectSerializer implements CapaObjectSerializer {
+public class BaijiSSJsonObjectSerializer extends AbstractObjectSerializer {
 
     private static final SSJsonSerializer SERIALIZER = CapaSerializer.ssJsonSerializer;
 
     /**
-     * Serializes a given state object into byte array.
+     * Serializes a given object into byte array.
      *
-     * @param o State object to be serialized.
+     * @param o object to be serialized.
      * @return Array of bytes[] with the serialized content.
      * @throws IOException In case state cannot be serialized.
      */
     @Override
-    public byte[] serialize(Object o) throws IOException {
+    public byte[] doSerialize(Object o) throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         SERIALIZER.serialize(stream, o);
         return stream.toByteArray();
@@ -56,7 +56,7 @@ public class BaijiSSJsonObjectSerializer implements CapaObjectSerializer {
      * @throws IOException In case content cannot be deserialized.
      */
     @Override
-    public <T> T deserialize(byte[] data, TypeRef<T> type) throws IOException {
+    public <T> T doDeserialize(byte[] data, TypeRef<T> type) throws IOException {
         Class<?> clazz = (Class<?>) type.getType();
         Object deserialize = SERIALIZER.deserialize(new ByteArrayInputStream(data), clazz);
         return (T) deserialize;
