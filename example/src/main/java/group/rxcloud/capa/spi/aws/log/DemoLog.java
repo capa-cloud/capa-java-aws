@@ -21,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DemoLog {
     public static void main(String[] args) {
-        for (int i = 0; i < 5; i++) {
+        log.info("[[messageId=11234567]]Test");
+
+       /* for (int i = 0; i < 5; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -30,7 +32,7 @@ public class DemoLog {
                     }
                 }
             }, "Thread_" + i).start();
-        }
+        }*/
         try {
             Thread.sleep(30 * 1000);
         } catch (InterruptedException e) {
