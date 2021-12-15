@@ -39,10 +39,7 @@ import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
 import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public class CloudWatchLogsService {
 
@@ -63,7 +60,6 @@ public class CloudWatchLogsService {
 
     private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
     private static final int DEFAULT_MAX_LOG_STREAM_COUNT = 10;
-    private static final String UNKNOWN = "UNKNOWN";
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -174,7 +170,7 @@ public class CloudWatchLogsService {
     public static List<String> getLogStreamNames() {
         List<String> logStreamNames = new ArrayList<>();
         for (int i = 0; i < DEFAULT_MAX_LOG_STREAM_COUNT; i++) {
-            logStreamNames.add(String.format(LOG_STREAM_FORMAT, APP_ID, UNKNOWN, i));
+            logStreamNames.add(String.format(LOG_STREAM_FORMAT, APP_ID, UUID.randomUUID().toString(), i));
         }
         return logStreamNames;
     }
