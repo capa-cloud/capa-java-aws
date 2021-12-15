@@ -179,7 +179,7 @@ public class CloudWatchLogsService {
     }
 
     private static String buildApplicationEnv() {
-        return CapaFoundation.getEnv(FoundationType.TRIP);
+        return CapaFoundation.getEnv(FoundationType.TRIP) == "" ? "DEFAULT" : CapaFoundation.getEnv(FoundationType.TRIP);
     }
 
     private static void createLogGroup() {
