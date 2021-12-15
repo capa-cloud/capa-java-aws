@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DemoLog {
     public static void main(String[] args) {
         log.info("[[messageId=11234567]]Test");
+
        /* for (int i = 0; i < 5; i++) {
             new Thread(new Runnable() {
                 @Override
