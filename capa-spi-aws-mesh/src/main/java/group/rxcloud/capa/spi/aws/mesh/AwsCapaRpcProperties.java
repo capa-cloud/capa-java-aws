@@ -21,6 +21,8 @@ import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.CapaProperties;
 import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
 
@@ -28,6 +30,8 @@ import java.util.Properties;
  * The AWS Capa properties.
  */
 public interface AwsCapaRpcProperties {
+
+    Logger logger = LoggerFactory.getLogger(AwsCapaRpcProperties.class);
 
     interface AppMeshProperties {
 
@@ -59,6 +63,9 @@ public interface AwsCapaRpcProperties {
 
                 // FIXME: 2021/12/15 use trip logic currently
                 rpcAwsAppMeshNamespace = CapaFoundation.getNamespace(FoundationType.TRIP);
+
+                logger.info("[Capa.Rpc.Client.config] [AwsCapaRpcProperties.AppMeshProperties] rpcAwsAppMeshTemplate[{}] rpcAwsAppMeshPort[{}] rpcAwsAppMeshNamespace[{}]",
+                        rpcAwsAppMeshTemplate, rpcAwsAppMeshPort, rpcAwsAppMeshNamespace);
             }
 
             public static Integer getRpcAwsAppMeshPort() {
@@ -90,6 +97,9 @@ public interface AwsCapaRpcProperties {
                 Properties properties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("rpc-aws");
 
                 rpcAwsAppMeshSerializer = properties.getProperty(RPC_AWS_APP_MESH_SERIALIZER, rpcAwsAppMeshSerializer);
+
+                logger.info("[Capa.Rpc.Client.config] [AwsCapaRpcProperties.SerializerProperties] rpcAwsAppMeshSerializer[{}]",
+                        rpcAwsAppMeshSerializer);
             }
 
             public static String getRpcAwsAppMeshSerializer() {

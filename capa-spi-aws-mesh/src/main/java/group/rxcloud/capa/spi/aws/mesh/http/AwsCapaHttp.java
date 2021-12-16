@@ -93,9 +93,11 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
             accepts.add(userAcceptValue);
         }
         // 2. set accept header same with content-type
-        final String contentType = body.contentType().toString();
-        if (contentType != null && contentType.length() > 0) {
-            accepts.add(contentType);
+        if (body.contentType() != null) {
+            final String contentType = Objects.requireNonNull(body.contentType()).toString();
+            if (contentType.length() > 0) {
+                accepts.add(contentType);
+            }
         }
         // 3. add */* at last
         accepts.add(ACCEPT_ALL);
@@ -199,6 +201,10 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
             if (HttpExtension.GET.getMethod().toString().equals(httpMethod)) {
                 // TODO: 2021/11/30 append urlParameters to url
+                if (logger.isWarnEnabled()) {
+                    logger.warn("[Capa.Rpc.Client.http] [AwsCapaHttp.doAsyncInvoke] GET not supported now, urlParameters[{}]",
+                            urlParameters);
+                }
             }
 
             // async invoke
@@ -210,7 +216,7 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                     type);
             asyncInvoke0.exceptionally(throwable -> {
                 if (logger.isWarnEnabled()) {
-                    logger.warn("[AwsCapaHttp] async invoke error", throwable);
+                    logger.warn("[Capa.Rpc.Client.http] [AwsCapaHttp.doAsyncInvoke] async invoke error", throwable);
                 }
                 throw new CapaException(CapaErrorContext.DEPENDENT_SERVICE_ERROR, throwable);
             });
@@ -228,6 +234,11 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
             setRequestHeaderOfAccept(headers, body);
 
             Headers header = getRequestHeaderWithParams(headers);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("[Capa.Rpc.Client.http] [AwsCapaHttp.invokeHttp] final request url[{}] header[{}] httpMethod[{}]",
+                        url, header, httpMethod);
+            }
 
             // make http request
             Request request = new Request.Builder()
