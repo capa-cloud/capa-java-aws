@@ -16,8 +16,9 @@
  */
 package group.rxcloud.capa.spi.aws.config;
 
-import com.ctrip.framework.foundation.Foundation;
 import com.google.common.collect.Lists;
+import group.rxcloud.capa.addons.foundation.CapaFoundation;
+import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
@@ -81,7 +82,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
 
     private AppConfigAsyncClient appConfigAsyncClient;
 
-    private static final String APPCONFIG_NAME_FORMAT="%s_%s";
+    private static final String APPCONFIG_NAME_FORMAT = "%s_%s";
 
     private static final Long REQUEST_TIMEOUT_IN_SECONDS = AwsCapaConfigurationProperties.AppConfigProperties.Settings.getRequestTimeoutInSeconds();
 
@@ -133,7 +134,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return Mono.error(new CapaException(CapaErrorContext.PARAMETER_ERROR, "keys is null or empty"));
         }
 
-        String applicationName = String.format(APPCONFIG_NAME_FORMAT,appId, Foundation.server().getEnv().getName());
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaFoundation.getEnv(FoundationType.TRIP));
         String configurationName = keys.get(0);
 
         GetConfigurationRequest request = GetConfigurationRequest.builder()
@@ -153,7 +154,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     @Override
     protected <T> Flux<SubscribeResp<T>> doSubscribe(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
 
-        String applicationName = String.format(APPCONFIG_NAME_FORMAT,appId, Foundation.server().getEnv().getName());
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaFoundation.getEnv(FoundationType.TRIP));
         String configurationName = keys.get(0);
 
         initSubscribe(applicationName, configurationName, group, label, metadata, type);
