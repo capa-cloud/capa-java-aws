@@ -16,6 +16,8 @@
  */
 package group.rxcloud.capa.spi.aws.mesh;
 
+import group.rxcloud.capa.addons.foundation.CapaFoundation;
+import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.CapaProperties;
 import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
@@ -56,7 +58,7 @@ public interface AwsCapaRpcProperties {
                 }
 
                 // FIXME: 2021/12/15 use trip logic currently
-                rpcAwsAppMeshNamespace = "namespace";
+                rpcAwsAppMeshNamespace = CapaFoundation.getNamespace(FoundationType.TRIP);
             }
 
             public static Integer getRpcAwsAppMeshPort() {
