@@ -23,7 +23,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.10.12.1.RELEASE</version>
+        <version>1.10.12.2.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-telemetry</artifactId>
@@ -54,26 +54,6 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>cloudwatch</artifactId>
         </dependency>
-
-        <!-- trace log test -->
-<!--        <dependency>-->
-<!--            <groupId>group.rxcloud</groupId>-->
-<!--            <artifactId>capa-spi-aws-log</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-classic</artifactId>-->
-<!--            <version>1.1.7</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-core</artifactId>-->
-<!--            <version>1.1.7</version>-->
-<!--            <scope>test</scope>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>com.google.code.gson</groupId>
