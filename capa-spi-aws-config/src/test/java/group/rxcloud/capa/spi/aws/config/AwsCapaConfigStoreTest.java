@@ -66,7 +66,6 @@ class AwsCapaConfigStoreTest {
         Whitebox.setInternalState(ins, "appConfigAsyncClient", client);
         PowerMockito.when(client.getConfiguration(ArgumentMatchers.any(GetConfigurationRequest.class))).thenReturn(mockGetConfigurationRespV1());
 
-
         SerializerProcessor serializerProcessor = PowerMockito.mock(SerializerProcessor.class);
         Whitebox.setInternalState(ins, "serializerProcessor", serializerProcessor);
         User user = new User();

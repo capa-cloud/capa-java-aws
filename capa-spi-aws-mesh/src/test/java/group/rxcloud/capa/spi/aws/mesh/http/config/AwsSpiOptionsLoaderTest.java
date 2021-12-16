@@ -35,7 +35,7 @@ public class AwsSpiOptionsLoaderTest {
 
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
-        Assertions.assertNotNull(awsToAwsServiceOptions.getNamespace());
         Assertions.assertNotNull(awsToAwsServiceOptions.getServiceEnv());
+        Assertions.assertNull(awsToAwsServiceOptions.getNamespace());
     }
 }

@@ -37,6 +37,6 @@ public class AwsRpcEnvironmentTest {
     @Test
     public void testGetNamespace_SuccessWhenDefault() {
         String namespace = AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshNamespace();
-        Assertions.assertNotNull(namespace);
+        Assertions.assertNull(namespace);
     }
 }
