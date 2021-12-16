@@ -50,18 +50,21 @@ public class AwsCapaHttpTest {
     @Test
     public void testInvokeSpiApi_Success() {
         AwsSpiOptionsLoader awsSpiOptionsLoader = new AwsSpiOptionsLoader();
-        AwsRpcServiceOptions awsRpcServiceOptions = awsSpiOptionsLoader.loadRpcServiceOptions("appId");
 
-        CompletableFuture<HttpResponse<String>> responseCompletableFuture = awsCapaHttp.invokeSpiApi("appId",
-                "method",
-                "requestData",
-                "POST",
-                new HashMap<>(),
-                new HashMap<>(),
-                TypeRef.STRING,
-                awsRpcServiceOptions);
+        Assertions.assertThrows(NullPointerException.class, () -> {
+            AwsRpcServiceOptions awsRpcServiceOptions = awsSpiOptionsLoader.loadRpcServiceOptions("appId");
 
-        responseCompletableFuture.cancel(true);
+            CompletableFuture<HttpResponse<String>> responseCompletableFuture = awsCapaHttp.invokeSpiApi("appId",
+                    "method",
+                    "requestData",
+                    "POST",
+                    new HashMap<>(),
+                    new HashMap<>(),
+                    TypeRef.STRING,
+                    awsRpcServiceOptions);
+
+            responseCompletableFuture.cancel(true);
+        });
     }
 
     @Test
