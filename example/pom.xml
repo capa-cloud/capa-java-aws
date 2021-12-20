@@ -21,7 +21,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.10.12.2.RELEASE</version>
+        <version>1.10.12.3-alpha-1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
