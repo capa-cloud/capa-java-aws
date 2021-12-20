@@ -29,11 +29,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class MessageSender extends Thread {
@@ -93,8 +89,9 @@ public class MessageSender extends Thread {
                     }
                 }
             } catch (Throwable throwable) {
+                throwable.printStackTrace();
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), "BuildCompressedChunkError"))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getClass().getName()))
                             .add(1);
                 });
 
@@ -115,21 +112,24 @@ public class MessageSender extends Thread {
     }
 
     private void doSendMessage(List<String> messages) {
-        List<String> logStreamNames = CloudWatchLogsService.getLogStreamNames();
-        Random random = new Random();
-        int index = random.nextInt(logStreamNames.size());
-        try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + '_' + index)) {
-            CloudWatchLogsService.putLogEvents(messages, logStreamNames.get(index));
-        } catch (BlockException blockException) {
-            try {
-                Thread.sleep(WAIT_INTERVAL);
-                doSendMessage(messages);
-            } catch (Exception exception) {
+        try {
+            List<String> logStreamNames = CloudWatchLogsService.getLogStreamNames();
+            Random random = new Random();
+            int index = random.nextInt(logStreamNames.size());
+            try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + '_' + index)) {
+                CloudWatchLogsService.putLogEvents(messages, logStreamNames.get(index));
+            } catch (BlockException blockException) {
+                try {
+                    Thread.sleep(WAIT_INTERVAL);
+                    doSendMessage(messages);
+                } catch (Exception exception) {
 
+                }
             }
         } catch (Throwable throwable) {
+            throwable.printStackTrace();
             LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), "SenderPutLogEventsError"))
+                longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), throwable.getClass().getName()))
                         .add(1);
             });
         }

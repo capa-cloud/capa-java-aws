@@ -26,6 +26,8 @@ import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.utils.StringUtils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +45,10 @@ public class LogAppendManager {
      * The name of log source data.
      */
     protected static final String LOG_DATA_NAME = "logData";
+    protected static final String ERROR_NAME = "errorName";
+    protected static final String ERROR_MESSAGE = "errorMessage";
+
+
     /**
      * The name of log level.
      */
@@ -122,7 +128,7 @@ public class LogAppendManager {
         return tags;
     }
 
-    public static void appendLogs(String message, Map<String, String> MDCTags, String logLevel) {
+    public static void appendLogs(String message, Map<String, String> MDCTags, String logLevel,  Throwable throwable) {
         if (StringUtils.isBlank(message)) {
             message = "";
         }
@@ -138,8 +144,18 @@ public class LogAppendManager {
             }
         }
         tags = appendMDCTags(tags, MDCTags);
-
         Map<String, String> logMessageMap = new HashMap<>();
+
+        if (throwable != null) {
+            StringWriter sw = new StringWriter(256 * 1024);
+            PrintWriter pw = new PrintWriter(sw);
+            if (message != null) {
+                pw.println(message);
+            }
+            throwable.printStackTrace(pw);
+            message = sw.toString();
+            logMessageMap.put(ERROR_NAME, throwable.getClass().getName());
+        }
         if (StringUtils.isNotBlank(message)) {
             logMessageMap.put(LOG_DATA_NAME, message);
         }

@@ -17,6 +17,7 @@
 package group.rxcloud.capa.spi.aws.log.appender;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
@@ -80,7 +81,7 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
             if (capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())) {
                 String message = event.getFormattedMessage();
                 Map<String, String> MDCTags = event.getMDCPropertyMap();
-                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().levelStr);
+                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().levelStr, getThrowable(event));
             }
         } catch (Exception e) {
             LONG_COUNTER.ifPresent(longCounter -> {
@@ -93,4 +94,13 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
             });
         }
     }
+
+    private Throwable getThrowable(ILoggingEvent event) {
+        ThrowableProxy throwableProxy = (ThrowableProxy) event.getThrowableProxy();
+        if (throwableProxy != null) {
+            return throwableProxy.getThrowable();
+        }
+        return null;
+    }
+
 }

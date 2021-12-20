@@ -85,7 +85,7 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                 String message = event.getMessage().getFormattedMessage();
                 ReadOnlyStringMap contextData = event.getContextData();
                 Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
-                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name());
+                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name(), event.getThrown());
             }
         } catch (Exception e) {
             try {
