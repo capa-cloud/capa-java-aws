@@ -35,10 +35,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 
 /**
@@ -78,6 +80,32 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                 urlParameters,
                 type,
                 (AwsRpcServiceOptions) rpcServiceOptions);
+    }
+
+    private static final String ACCEPT_KEY = "accept";
+    private static final String ACCEPT_ALL = "*/*";
+
+    private void setRequestHeaderOfAccept(Map<String, String> headers, RequestBody body) {
+        final List<String> accepts = new ArrayList<>(3);
+        // 1. set user accept header
+        final String userAcceptValue = headers.get(ACCEPT_KEY);
+        if (userAcceptValue != null && userAcceptValue.length() > 0) {
+            accepts.add(userAcceptValue);
+        }
+        // 2. set accept header same with content-type
+        if (body.contentType() != null) {
+            final String contentType = Objects.requireNonNull(body.contentType()).toString();
+            if (contentType.length() > 0) {
+                accepts.add(contentType);
+            }
+        }
+        // 3. add */* at last
+        accepts.add(ACCEPT_ALL);
+
+        final String acceptStr = accepts.stream()
+                .distinct()
+                .collect(Collectors.joining(","));
+        headers.put(ACCEPT_KEY, acceptStr);
     }
 
     private interface AwsHttpInvoker {
@@ -173,6 +201,10 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
 
             if (HttpExtension.GET.getMethod().toString().equals(httpMethod)) {
                 // TODO: 2021/11/30 append urlParameters to url
+                if (logger.isWarnEnabled()) {
+                    logger.warn("[Capa.Rpc.Client.http] [AwsCapaHttp.doAsyncInvoke] GET not supported now, urlParameters[{}]",
+                            urlParameters);
+                }
             }
 
             // async invoke
@@ -184,7 +216,7 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                     type);
             asyncInvoke0.exceptionally(throwable -> {
                 if (logger.isWarnEnabled()) {
-                    logger.warn("[AwsCapaHttp] async invoke error", throwable);
+                    logger.warn("[Capa.Rpc.Client.http] [AwsCapaHttp.doAsyncInvoke] async invoke error", throwable);
                 }
                 throw new CapaException(CapaErrorContext.DEPENDENT_SERVICE_ERROR, throwable);
             });
@@ -198,7 +230,15 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                                                                   TypeRef<T> type) {
             // generate http request body
             RequestBody body = getRequestBodyWithSerialize(requestData, headers);
+
+            setRequestHeaderOfAccept(headers, body);
+
             Headers header = getRequestHeaderWithParams(headers);
+
+            if (logger.isDebugEnabled()) {
+                logger.debug("[Capa.Rpc.Client.http] [AwsCapaHttp.invokeHttp] final request url[{}] header[{}] httpMethod[{}]",
+                        url, header, httpMethod);
+            }
 
             // make http request
             Request request = new Request.Builder()

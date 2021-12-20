@@ -34,8 +34,8 @@ public class AwsRpcServiceOptionsTest {
         awsToAwsServiceOptions = new AwsRpcServiceOptions.AwsToAwsServiceOptions(
                 "appId",
                 8080,
-                "FWS",
-                "FWS");
+                "meshnamespace",
+                "meshnamespace");
         awsRpcServiceOptions.setAwsToAwsServiceOptions(awsToAwsServiceOptions);
     }
 
@@ -58,8 +58,8 @@ public class AwsRpcServiceOptionsTest {
 
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
-        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getNamespace());
-        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getServiceEnv());
+        Assertions.assertEquals("meshnamespace", awsToAwsServiceOptions.getNamespace());
+        Assertions.assertEquals("meshnamespace", awsToAwsServiceOptions.getServiceEnv());
     }
 
     @Test

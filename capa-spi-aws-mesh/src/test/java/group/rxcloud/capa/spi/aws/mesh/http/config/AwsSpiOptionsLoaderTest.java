@@ -23,7 +23,7 @@ public class AwsSpiOptionsLoaderTest {
 
     @Test
     public void testLoadRpcServiceOptions_Success() {
-        System.setProperty("ENV", "FWS");
+        System.setProperty("ENV", "meshnamespace");
 
         AwsSpiOptionsLoader awsSpiOptionsLoader = new AwsSpiOptionsLoader();
 
@@ -35,7 +35,7 @@ public class AwsSpiOptionsLoaderTest {
 
         Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
         Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
-        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getNamespace());
-        Assertions.assertEquals("FWS", awsToAwsServiceOptions.getServiceEnv());
+        Assertions.assertNotNull(awsToAwsServiceOptions.getServiceEnv());
+        Assertions.assertNull(awsToAwsServiceOptions.getNamespace());
     }
 }
