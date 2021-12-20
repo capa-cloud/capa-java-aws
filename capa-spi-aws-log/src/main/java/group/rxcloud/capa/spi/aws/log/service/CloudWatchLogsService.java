@@ -27,7 +27,17 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 import software.amazon.awssdk.services.cloudwatchlogs.CloudWatchLogsClient;
-import software.amazon.awssdk.services.cloudwatchlogs.model.*;
+import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogGroupRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.CreateLogStreamRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogGroupsResponse;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.DescribeLogStreamsResponse;
+import software.amazon.awssdk.services.cloudwatchlogs.model.InputLogEvent;
+import software.amazon.awssdk.services.cloudwatchlogs.model.LogGroup;
+import software.amazon.awssdk.services.cloudwatchlogs.model.LogStream;
+import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsRequest;
+import software.amazon.awssdk.services.cloudwatchlogs.model.PutLogEventsResponse;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 import java.util.ArrayList;
