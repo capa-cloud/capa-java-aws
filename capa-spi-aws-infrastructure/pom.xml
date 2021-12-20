@@ -23,7 +23,7 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.10.12.3.RELEASE</version>
+        <version>1.10.12.3-alpha-1</version>
     </parent>
 
     <artifactId>capa-spi-aws-infrastructure</artifactId>
