@@ -23,17 +23,14 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
+import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
 import group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class MessageSender extends Thread {
@@ -43,6 +40,8 @@ public class MessageSender extends Thread {
     private static final String PUT_LOG_EVENTS_RESOURCE_NAME = "CloudWatchLogs.putLogEvents";
     private static final String MESSAGE_SENDER_ERROR_NAMESPACE = "LogMessageSenderError";
     private static final String MESSAGE_SENDER_ERROR_METRIC_NAME = "LogsSenderError";
+    private static final String LOG_STREAM_COUNT_NAME = "logStreamCount";
+    private static final int DEFAULT_MAX_RULE_COUNT = 10;
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -67,7 +66,11 @@ public class MessageSender extends Thread {
 
     private static void initFlowRules() {
         List<FlowRule> flowRules = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        int ruleCount = LogConfiguration.containsKey(LOG_STREAM_COUNT_NAME)
+                ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
+                : DEFAULT_MAX_RULE_COUNT;
+
+        for (int i = 0; i < ruleCount; i++) {
             FlowRule flowRule = new FlowRule();
             flowRule.setResource(PUT_LOG_EVENTS_RESOURCE_NAME + "_" + i);
             flowRule.setGrade(RuleConstant.FLOW_GRADE_QPS);
