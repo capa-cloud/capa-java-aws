@@ -87,7 +87,7 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
             LONG_COUNTER.ifPresent(longCounter -> {
                 try {
                     //Enhance function without affecting function
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), LOG_LOGBACK_APPENDER_ERROR_TYPE))
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), e.getClass().getName()))
                             .add(COUNTER_NUM);
                 } finally {
                 }
