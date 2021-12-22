@@ -140,7 +140,7 @@ public class LogAppendManager {
             message = "";
         }
         Map<String, String> tags = new HashMap<>();
-        tags.put(LOG_LEVEL_NAME, logLevel);
+        //tags.put(LOG_LEVEL_NAME, logLevel);
         if (message.startsWith(TAG_PREFIX)) {
             int tagsEndIndex = message.indexOf(TAG_SUFFIX);
             if (tagsEndIndex > 0) {
@@ -152,7 +152,7 @@ public class LogAppendManager {
         }
         tags = appendMDCTags(tags, MDCTags);
         Map<String, String> logMessageMap = new HashMap<>();
-
+        logMessageMap.put(LOG_LEVEL_NAME, logLevel);
         if (throwable != null) {
             StringWriter sw = new StringWriter(256 * 1024);
             PrintWriter pw = new PrintWriter(sw);
