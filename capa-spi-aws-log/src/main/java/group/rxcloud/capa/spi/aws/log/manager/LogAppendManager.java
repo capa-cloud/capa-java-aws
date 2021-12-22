@@ -130,6 +130,10 @@ public class LogAppendManager {
     }
 
     public static void appendLogs(String message, Map<String, String> MDCTags, String logLevel, Throwable throwable) {
+        putLogToCloudWatch(parseLogs(message, MDCTags, logLevel, throwable));
+    }
+
+    public static Map<String,String> parseLogs(String message, Map<String, String> MDCTags, String logLevel, Throwable throwable){
         if (StringUtils.isBlank(message)) {
             message = "";
         }
@@ -164,7 +168,7 @@ public class LogAppendManager {
         if (tags != null && !tags.isEmpty()) {
             logMessageMap.putAll(tags);
         }
-        putLogToCloudWatch(logMessageMap);
+        return logMessageMap;
     }
 
     private static void putLogToCloudWatch( Map<String, String> tags) {
