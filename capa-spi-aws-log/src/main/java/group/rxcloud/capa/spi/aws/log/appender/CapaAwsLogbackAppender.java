@@ -60,10 +60,6 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
 
     private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
 
-    static {
-
-    }
-
     static Optional<LongCounter> getCounterOpt() {
         if (METRIC_INIT.get()) {
             return LONG_COUNTER;

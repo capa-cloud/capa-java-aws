@@ -156,9 +156,7 @@ public class LogAppendManager {
         if (throwable != null) {
             StringWriter sw = new StringWriter(256 * 1024);
             PrintWriter pw = new PrintWriter(sw);
-            if (message != null) {
-                pw.println(message);
-            }
+            pw.print(message);
             throwable.printStackTrace(pw);
             message = sw.toString();
             logMessageMap.put(ERROR_NAME, throwable.getClass().getName());
@@ -183,8 +181,8 @@ public class LogAppendManager {
     }
 
     private static void putLogToCloudWatch(String message, Map<String, String> tags) {
-        if (LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
-                && Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
+        if (!LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
+                || Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
             //put logs by agent
             putLogsByAgent(message, tags);
         } else {
