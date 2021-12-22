@@ -49,8 +49,6 @@ public class LogAppendManager {
      */
     protected static final String LOG_DATA_NAME = "logData";
     protected static final String ERROR_NAME = "errorName";
-    protected static final String ERROR_MESSAGE = "errorMessage";
-
 
     /**
      * The name of log level.
@@ -63,10 +61,6 @@ public class LogAppendManager {
 
     protected static final String APP_ID_NAME = "appId";
 
-    /**
-     * Number of counts each time.
-     */
-    protected static final Integer COUNTER_NUM = 1;
     /**
      * Init a {@link Gson} instance.
      */
@@ -140,7 +134,6 @@ public class LogAppendManager {
             message = "";
         }
         Map<String, String> tags = new HashMap<>();
-        //tags.put(LOG_LEVEL_NAME, logLevel);
         if (message.startsWith(TAG_PREFIX)) {
             int tagsEndIndex = message.indexOf(TAG_SUFFIX);
             if (tagsEndIndex > 0) {
@@ -161,9 +154,9 @@ public class LogAppendManager {
             message = sw.toString();
             logMessageMap.put(ERROR_NAME, throwable.getClass().getName());
         }
-        /*if (StringUtils.isNotBlank(message)) {
+        if (StringUtils.isNotBlank(message)) {
             logMessageMap.put(LOG_DATA_NAME, message);
-        }*/
+        }
         Map<String, String> defaultTags = getDefaultTags();
         if (defaultTags != null && !defaultTags.isEmpty()) {
             logMessageMap.putAll(defaultTags);
@@ -171,30 +164,21 @@ public class LogAppendManager {
         if (tags != null && !tags.isEmpty()) {
             logMessageMap.putAll(tags);
         }
-        // put logs to CloudWatchLogs
-        putLogToCloudWatch(message, logMessageMap);
-       /* if (!logMessageMap.isEmpty()) {
-            String logMessage = GSON.toJson(logMessageMap);
-            MessageConsumer consumer = MessageManager.getInstance().getConsumer();
-            consumer.processLogEvent(logMessage);
-        }*/
+        putLogToCloudWatch(logMessageMap);
     }
 
-    private static void putLogToCloudWatch(String message, Map<String, String> tags) {
+    private static void putLogToCloudWatch( Map<String, String> tags) {
         if (!LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
                 || Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
-            //put logs by agent
-            putLogsByAgent(message, tags);
+            // put logs by agent
+            putLogsByAgent(tags);
         } else {
-            //put logs by api
-            putLogsByApi(message, tags);
+            // put logs by api
+            putLogsByApi(tags);
         }
     }
 
-    private static void putLogsByApi(String message, Map<String, String> tags) {
-        if (StringUtils.isNotBlank(message)) {
-            tags.put(LOG_DATA_NAME, message);
-        }
+    private static void putLogsByApi( Map<String, String> tags) {
         if (!tags.isEmpty()) {
             String logMessage = GSON.toJson(tags);
             MessageConsumer consumer = MessageManager.getInstance().getConsumer();
@@ -202,40 +186,20 @@ public class LogAppendManager {
         }
     }
 
-    private static void putLogsByAgent(String message, Map<String, String> tags) {
-        StringBuilder logData = new StringBuilder();
-        if (tags != null && !tags.isEmpty()) {
-            logData.append("tags:[");
-            tags.forEach((key, value) -> {
-                logData.append(key)
-                        .append("=")
-                        .append(value)
-                        .append(",");
-            });
-            logData.append("] ");
-        }
-        if (StringUtils.isNotBlank(message)) {
-            logData.append("logMessage:[")
-                    .append(message)
-                    .append("]");
-        }
-        System.out.println(logData);
+    private static void putLogsByAgent(Map<String, String> tags) {
+        System.out.println(GSON.toJson(tags));
     }
 
     protected static Map<String, String> getDefaultTags() {
         Map<String, String> defaultTags = new HashMap<>();
-        try {
-            // traceId
-            if (StringUtils.isNotBlank(CapaContext.getTraceId())) {
-                defaultTags.put(TRACE_ID_NAME, CapaContext.getTraceId());
-            }
-            // appId
-            String appId = CapaFoundation.getAppId(FoundationType.TRIP);
-            if(StringUtils.isNotBlank(appId)){
-                defaultTags.put(APP_ID_NAME, appId);
-            }
-        }catch (Throwable e){
-
+        // traceId
+        if (StringUtils.isNotBlank(CapaContext.getTraceId())) {
+            defaultTags.put(TRACE_ID_NAME, CapaContext.getTraceId());
+        }
+        // appId
+        String appId = CapaFoundation.getAppId(FoundationType.TRIP);
+        if (StringUtils.isNotBlank(appId)) {
+            defaultTags.put(APP_ID_NAME, appId);
         }
         return defaultTags;
     }

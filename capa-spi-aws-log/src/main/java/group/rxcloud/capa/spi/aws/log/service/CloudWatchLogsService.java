@@ -22,6 +22,7 @@ import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -208,6 +209,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
+            CustomLogManager.error("CloudWatchLogsService createLogStream error.", e);
             // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_GROUP_ERROR);
             throw new CapaException(e);
         }
@@ -243,6 +245,7 @@ public class CloudWatchLogsService {
                 }
             }
         } catch (Throwable e) {
+            CustomLogManager.error("CloudWatchLogsService createLogStream error.", e);
             // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_STREAM_ERROR);
             throw new CapaException(e);
         }

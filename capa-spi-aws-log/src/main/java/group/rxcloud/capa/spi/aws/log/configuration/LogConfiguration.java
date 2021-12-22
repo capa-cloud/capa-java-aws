@@ -19,6 +19,7 @@ package group.rxcloud.capa.spi.aws.log.configuration;
 import group.rxcloud.capa.component.CapaLogProperties;
 import group.rxcloud.capa.infrastructure.hook.MergedPropertiesConfig;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -46,6 +47,7 @@ public class LogConfiguration {
                         hooks.defaultConfigurationAppId(),
                         CapaLogProperties.Settings.getCenterConfigAppId());
             } catch (Throwable throwable) {
+                CustomLogManager.warn("Mixer configurationHooksNullable error.", throwable);
                 Mixer.telemetryHooksNullable().ifPresent(telemetryHooks -> {
                     Meter meter = telemetryHooks.buildMeter("LogsConfiguration").block();
                     LongCounter longCounter = meter.counterBuilder("LogsError").build();

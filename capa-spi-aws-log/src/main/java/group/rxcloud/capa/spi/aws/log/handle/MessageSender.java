@@ -24,17 +24,14 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class MessageSender extends Thread {
@@ -100,7 +97,7 @@ public class MessageSender extends Thread {
                     }
                 }
             } catch (Throwable throwable) {
-                throwable.printStackTrace();
+                CustomLogManager.error("MessageSender build chunk error.", throwable);
                 LONG_COUNTER.ifPresent(longCounter -> {
                     longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getClass().getName()))
                             .add(1);
@@ -138,7 +135,7 @@ public class MessageSender extends Thread {
                 }
             }
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            CustomLogManager.error("MessageSender send message error.", throwable);
             LONG_COUNTER.ifPresent(longCounter -> {
                 longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), throwable.getClass().getName()))
                         .add(1);

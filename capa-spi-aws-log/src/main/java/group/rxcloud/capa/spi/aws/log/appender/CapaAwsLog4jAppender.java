@@ -18,6 +18,7 @@ package group.rxcloud.capa.spi.aws.log.appender;
 
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLog4jAppenderSpi;
@@ -96,7 +97,7 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
             }
         } catch (Exception e) {
             try {
-                e.printStackTrace();
+                CustomLogManager.error("CapaAwsLog4jAppender appender log error.", e);
                 //Enhance function without affecting function
                 getCounterOpt().ifPresent(longCounter -> {
                     longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), e.getClass().getName()))

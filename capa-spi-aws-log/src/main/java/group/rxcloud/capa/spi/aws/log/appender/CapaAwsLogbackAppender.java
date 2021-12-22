@@ -20,6 +20,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLogbackAppenderSpi;
@@ -89,7 +90,7 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
                 LogAppendManager.appendLogs(message, MDCTags, event.getLevel().levelStr, getThrowable(event));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            CustomLogManager.error("CapaAwsLogbackAppender appender log error.", e);
             getCounterOpt().ifPresent(longCounter -> {
                 try {
                     //Enhance function without affecting function
