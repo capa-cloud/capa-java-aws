@@ -60,6 +60,8 @@ public class LogAppendManager {
     protected static final String TRACE_ID_NAME = "_trace_id";
 
     protected static final String APP_ID_NAME = "appId";
+    protected static final String PUT_LOG_ASYNC_SWITCH = "putLogAsyncSwitch";
+
 
     /**
      * Init a {@link Gson} instance.
@@ -77,7 +79,6 @@ public class LogAppendManager {
      * The metric name for logging error.
      */
     private static final String LOG_ERROR_METRIC_NAME = "LogError";
-    private static final String CLOUD_WATCH_AGENT_SWITCH_NAME = "cloudWatchAgentSwitch";
     /**
      * Init an instance of {@link LongCounter}.
      */
@@ -130,7 +131,18 @@ public class LogAppendManager {
     }
 
     public static void appendLogs(String message, Map<String, String> MDCTags, String logLevel, Throwable throwable) {
-        putLogToCloudWatch(parseLogs(message, MDCTags, logLevel, throwable));
+        Map<String, String> logMessageMap = parseLogs(message, MDCTags, logLevel, throwable);
+        // put logs to CloudWatchLogs
+        if (!logMessageMap.isEmpty()) {
+            String logMessage = GSON.toJson(logMessageMap);
+            if (!LogConfiguration.containsKey(PUT_LOG_ASYNC_SWITCH)
+                    || Boolean.FALSE.toString().equalsIgnoreCase(LogConfiguration.get(PUT_LOG_ASYNC_SWITCH))) {
+                System.out.println(logMessage);
+            } else {
+                MessageConsumer consumer = MessageManager.getInstance().getConsumer();
+                consumer.processLogEvent(logMessage);
+            }
+        }
     }
 
     public static Map<String,String> parseLogs(String message, Map<String, String> MDCTags, String logLevel, Throwable throwable){
@@ -151,7 +163,7 @@ public class LogAppendManager {
         Map<String, String> logMessageMap = new HashMap<>();
         logMessageMap.put(LOG_LEVEL_NAME, logLevel);
         if (throwable != null) {
-            StringWriter sw = new StringWriter(256 * 1024);
+            StringWriter sw = new StringWriter(200 * 1024);
             PrintWriter pw = new PrintWriter(sw);
             pw.print(message);
             throwable.printStackTrace(pw);
@@ -169,29 +181,6 @@ public class LogAppendManager {
             logMessageMap.putAll(tags);
         }
         return logMessageMap;
-    }
-
-    private static void putLogToCloudWatch( Map<String, String> tags) {
-        if (!LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
-                || Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
-            // put logs by agent
-            putLogsByAgent(tags);
-        } else {
-            // put logs by api
-            putLogsByApi(tags);
-        }
-    }
-
-    private static void putLogsByApi( Map<String, String> tags) {
-        if (!tags.isEmpty()) {
-            String logMessage = GSON.toJson(tags);
-            MessageConsumer consumer = MessageManager.getInstance().getConsumer();
-            consumer.processLogEvent(logMessage);
-        }
-    }
-
-    private static void putLogsByAgent(Map<String, String> tags) {
-        System.out.println(GSON.toJson(tags));
     }
 
     protected static Map<String, String> getDefaultTags() {

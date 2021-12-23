@@ -82,11 +82,9 @@ public class CloudWatchLogsService {
             LongCounter longCounter = meter.counterBuilder(CLOUD_WATCH_LOGS_ERROR_METRIC_NAME).build();
             LONG_COUNTER = Optional.ofNullable(longCounter);
         });
-
-
     }
 
-    //Synchronously put log event
+    // Synchronously put log event
     public static void putLogEvent(String message, String logStreamName) {
         Objects.requireNonNull(logStreamName, "Log stream name is null");
         // Get sequence token

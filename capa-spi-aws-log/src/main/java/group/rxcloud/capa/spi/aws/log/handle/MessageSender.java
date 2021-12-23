@@ -30,12 +30,9 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
+import software.amazon.awssdk.utils.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 public class MessageSender extends Thread {
@@ -47,6 +44,7 @@ public class MessageSender extends Thread {
     private static final String MESSAGE_SENDER_ERROR_METRIC_NAME = "LogsSenderError";
     private static final String LOG_STREAM_COUNT_NAME = "logStreamCount";
     private static final int DEFAULT_MAX_RULE_COUNT = 10;
+    private static final String CLOUD_WATCH_AGENT_SWITCH_NAME = "cloudWatchAgentSwitch";
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -92,7 +90,7 @@ public class MessageSender extends Thread {
                 buildCompressedChunk();
                 if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
                     List<String> messages = getMessage();
-                    doSendMessage(messages);
+                    putLogToCloudWatch(messages);
                 } else {
                     try {
                         Thread.sleep(WAIT_INTERVAL);
@@ -115,7 +113,7 @@ public class MessageSender extends Thread {
             buildCompressedChunk();
             if (readCompressedChunk != null && !readCompressedChunk.isEmpty()) {
                 List<String> messages = this.getMessage();
-                this.doSendMessage(messages);
+                this.putLogToCloudWatch(messages);
             } else {
                 break;
             }
@@ -123,17 +121,28 @@ public class MessageSender extends Thread {
         this.shutdownLatch.countDown();
     }
 
-    private void doSendMessage(List<String> messages) {
+    private void putLogToCloudWatch(List<String> logMessages) {
+        if (!LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
+                || Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
+            // put logs by agent
+            putLogsByAgent(logMessages);
+        } else {
+            // put logs by api
+            putLogsByApi(logMessages);
+        }
+    }
+
+    private void putLogsByApi(List<String> logMessages) {
         try {
             List<String> logStreamNames = CloudWatchLogsService.getLogStreamNames();
             Random random = new Random();
             int index = random.nextInt(logStreamNames.size());
             try (Entry entry = SphU.entry(PUT_LOG_EVENTS_RESOURCE_NAME + '_' + index)) {
-                CloudWatchLogsService.putLogEvents(messages, logStreamNames.get(index));
+                CloudWatchLogsService.putLogEvents(logMessages, logStreamNames.get(index));
             } catch (BlockException blockException) {
                 try {
                     Thread.sleep(WAIT_INTERVAL);
-                    doSendMessage(messages);
+                    putLogsByApi(logMessages);
                 } catch (Exception exception) {
 
                 }
@@ -143,6 +152,14 @@ public class MessageSender extends Thread {
             LONG_COUNTER.ifPresent(longCounter -> {
                 longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), throwable.getClass().getName()))
                         .add(1);
+            });
+        }
+    }
+
+    private void putLogsByAgent(List<String> messages) {
+        if (!CollectionUtils.isNullOrEmpty(messages)) {
+            messages.forEach(message -> {
+                System.out.println(message);
             });
         }
     }
@@ -167,7 +184,6 @@ public class MessageSender extends Thread {
     private CompressedChunk pollChunk() {
         return readCompressedChunk.poll();
     }
-
 
     public void shutdown() {
         this.shutdownLatch = new CountDownLatch(1);
