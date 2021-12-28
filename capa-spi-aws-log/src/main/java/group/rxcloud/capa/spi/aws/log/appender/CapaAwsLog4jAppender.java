@@ -17,8 +17,8 @@
 package group.rxcloud.capa.spi.aws.log.appender;
 
 import group.rxcloud.capa.infrastructure.hook.Mixer;
-import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLog4jAppenderSpi;
@@ -33,6 +33,7 @@ import org.apache.logging.log4j.util.ReadOnlyStringMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
     /**
@@ -43,10 +44,6 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
      * Number of counts each time.
      */
     protected static final Integer COUNTER_NUM = 1;
-    /**
-     * The instance of the {@link TelemetryHooks}.
-     */
-    private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
     /**
      * The namespace for logging error.
      * TODO Set variables to common variables
@@ -64,14 +61,25 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
 
     static {
         PluginManager.addPackage("group.rxcloud.capa.spi.aws.log.appender");
-        TELEMETRY_HOOKS = Mixer.telemetryHooksNullable();
-        TELEMETRY_HOOKS.ifPresent(telemetryHooks -> {
-            Meter meter = telemetryHooks.buildMeter(LOG_ERROR_NAMESPACE).block();
-            LongCounter longCounter = meter.counterBuilder(LOG_ERROR_METRIC_NAME).build();
-            LONG_COUNTER = Optional.ofNullable(longCounter);
-        });
     }
 
+    private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
+
+    static Optional<LongCounter> getCounterOpt() {
+        if (METRIC_INIT.get()) {
+            return LONG_COUNTER;
+        }
+        synchronized (METRIC_INIT) {
+            if (METRIC_INIT.compareAndSet(false, true)) {
+                Mixer.telemetryHooksNullable().ifPresent(telemetryHooks -> {
+                    Meter meter = telemetryHooks.buildMeter(LOG_ERROR_NAMESPACE).block();
+                    LongCounter longCounter = meter.counterBuilder(LOG_ERROR_METRIC_NAME).build();
+                    LONG_COUNTER = Optional.ofNullable(longCounter);
+                });
+            }
+            return LONG_COUNTER;
+        }
+    }
     @Override
     public void appendLog(LogEvent event) {
         try {
@@ -85,13 +93,14 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                 String message = event.getMessage().getFormattedMessage();
                 ReadOnlyStringMap contextData = event.getContextData();
                 Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
-                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name());
+                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name(), event.getThrown());
             }
         } catch (Exception e) {
             try {
+                CustomLogManager.error("CapaAwsLog4jAppender appender log error.", e);
                 //Enhance function without affecting function
-                LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), LOG_LOG4J_APPENDER_ERROR_TYPE))
+                getCounterOpt().ifPresent(longCounter -> {
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), e.getClass().getName()))
                             .add(COUNTER_NUM);
                 });
             } finally {

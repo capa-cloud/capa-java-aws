@@ -284,10 +284,14 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     @Override
     protected CompletableResultCode doExport(Collection<MetricData> metrics) {
-        Map<String, List<CollectedMetrics>> collectedMetrics = collectedMetricsByNamespace(metrics);
-        METRICS_CACHE.collectAllByNamespace(collectedMetrics);
+        try {
+            Map<String, List<CollectedMetrics>> collectedMetrics = collectedMetricsByNamespace(metrics);
+            METRICS_CACHE.collectAllByNamespace(collectedMetrics);
 
-        collectedMetrics.forEach(CloudWatchMetricsExporter::convertAndSend);
+            collectedMetrics.forEach(CloudWatchMetricsExporter::convertAndSend);
+        } catch (Throwable e) {
+            log.warn("Fail to export metrics.", e);
+        }
 
         return CompletableResultCode.ofSuccess();
     }

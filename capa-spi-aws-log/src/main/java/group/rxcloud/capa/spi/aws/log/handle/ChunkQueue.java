@@ -18,12 +18,12 @@ package group.rxcloud.capa.spi.aws.log.handle;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChunkQueue {
     private final int maxBytes;
-    private final Queue<CompressedChunk> queue = new LinkedList<>();
+    private final Queue<CompressedChunk> queue = new ConcurrentLinkedQueue<>();
     private int bytes;
-    private int chunkCount = 0;
 
     public ChunkQueue(int maxBytes) {
         this.maxBytes = maxBytes;
@@ -56,7 +56,6 @@ public class ChunkQueue {
             }
         }
         bytes += length;
-        chunkCount++;
         return queue.offer(chunk);
     }
 

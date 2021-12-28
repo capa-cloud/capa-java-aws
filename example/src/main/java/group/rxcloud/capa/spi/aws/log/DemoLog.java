@@ -17,24 +17,27 @@
 package group.rxcloud.capa.spi.aws.log;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 
 @Slf4j
 public class DemoLog {
     public static void main(String[] args) {
-        log.info("[[messageId=11234567]]Test");
+        MDC.put("requestId","123456");
+        log.info("test:", new RuntimeException());
 
-       /* for (int i = 0; i < 5; i++) {
+        /*for (int i = 0; i < 50; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     for (int j = 0; j < 10; j++) {
-                        log.info("[[messageId=11234567]]Test");
+                        log.info("[[messageId=11234567]]Test +" +Thread.currentThread().getName());
                     }
                 }
             }, "Thread_" + i).start();
+           // log.info("Test");
         }*/
         try {
-            Thread.sleep(30 * 1000);
+            Thread.sleep(60 * 1000);
         } catch (InterruptedException e) {
 
         }
