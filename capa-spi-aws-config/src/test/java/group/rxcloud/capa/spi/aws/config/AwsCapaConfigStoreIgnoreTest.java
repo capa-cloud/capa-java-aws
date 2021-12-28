@@ -52,6 +52,21 @@ class AwsCapaConfigStoreIgnoreTest {
         Mono<List<ConfigurationItem<User>>> mono2 = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
         System.out.println(mono2.block().get(0).getContent().getAge());
 
+        Flux<SubscribeResp<User>> flux1 = ins.doSubscribe("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
+        flux1.subscribe(resp -> {
+            System.out.println("1:"+resp.getItems().get(0).getContent().getAge());
+        });
+
+        long start = System.currentTimeMillis();
+        while(System.currentTimeMillis()-start<20000){
+
+        }
+        //change config
+        Mono<List<ConfigurationItem<User>>> mono3 = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
+        System.out.println(mono3.block().get(0).getContent().getAge());
+
+        System.out.println("");
+
 //        Mono<List<ConfigurationItem<User>>> mono = ins.doGet("100012345", "", "", Lists.newArrayList("test1.json"), new HashMap<>(), TypeRef.get(User.class));
 //        System.out.println(mono.block().get(0).getContent().getAge());
 //
