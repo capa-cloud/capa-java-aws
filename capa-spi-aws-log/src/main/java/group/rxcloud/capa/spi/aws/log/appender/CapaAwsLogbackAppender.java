@@ -44,22 +44,25 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
      * Number of counts each time.
      */
     protected static final Integer COUNTER_NUM = 1;
+
     /**
      * The namespace for logging error.
      * TODO Set variables to common variables
      */
     private static final String LOG_ERROR_NAMESPACE = "CloudWatchLogs";
+
     /**
      * The metric name for logging error.
      * TODO Set variables to common variables
      */
     private static final String LOG_ERROR_METRIC_NAME = "LogError";
+
+    private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
+
     /**
      * Init an instance of {@link LongCounter}.
      */
     protected static Optional<LongCounter> LONG_COUNTER = Optional.empty();
-
-    private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
 
     static Optional<LongCounter> getCounterOpt() {
         if (METRIC_INIT.get()) {
@@ -73,8 +76,8 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
                     LONG_COUNTER = Optional.ofNullable(longCounter);
                 });
             }
-            return LONG_COUNTER;
         }
+        return LONG_COUNTER;
     }
 
     @Override
@@ -87,16 +90,18 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
             if (capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())) {
                 String message = event.getFormattedMessage();
                 Map<String, String> MDCTags = event.getMDCPropertyMap();
-                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().levelStr, getThrowable(event));
+                LogAppendManager.appendLogs(message, MDCTags, event.getLoggerName(), event.getThreadName(),
+                        event.getLevel().levelStr, event.getTimeStamp(), getThrowable(event));
             }
         } catch (Exception e) {
             CustomLogManager.error("CapaAwsLogbackAppender appender log error.", e);
             getCounterOpt().ifPresent(longCounter -> {
                 try {
                     //Enhance function without affecting function
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), e.getClass().getName()))
-                            .add(COUNTER_NUM);
-                } finally {
+                    longCounter.bind(Attributes
+                            .of(AttributeKey.stringKey(LOG_LOGBACK_APPENDER_ERROR_TYPE), e.getClass().getName()))
+                               .add(COUNTER_NUM);
+                } catch (Throwable ex) {
                 }
             });
         }

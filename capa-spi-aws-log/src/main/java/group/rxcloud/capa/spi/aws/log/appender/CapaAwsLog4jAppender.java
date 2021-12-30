@@ -36,24 +36,31 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
+
     /**
      * The error type name of the log4j appender.
      */
     protected static final String LOG_LOG4J_APPENDER_ERROR_TYPE = "Log4jAppendLogsError";
+
     /**
      * Number of counts each time.
      */
     protected static final Integer COUNTER_NUM = 1;
+
     /**
      * The namespace for logging error.
      * TODO Set variables to common variables
      */
     private static final String LOG_ERROR_NAMESPACE = "CloudWatchLogs";
+
     /**
      * The metric name for logging error.
      * TODO Set variables to common variables
      */
     private static final String LOG_ERROR_METRIC_NAME = "LogError";
+
+    private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
+
     /**
      * Init an instance of {@link LongCounter}.
      */
@@ -62,8 +69,6 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
     static {
         PluginManager.addPackage("group.rxcloud.capa.spi.aws.log.appender");
     }
-
-    private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
 
     static Optional<LongCounter> getCounterOpt() {
         if (METRIC_INIT.get()) {
@@ -77,9 +82,10 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                     LONG_COUNTER = Optional.ofNullable(longCounter);
                 });
             }
-            return LONG_COUNTER;
         }
+        return LONG_COUNTER;
     }
+
     @Override
     public void appendLog(LogEvent event) {
         try {
@@ -89,21 +95,23 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                 return;
             }
             Optional<CapaLogLevel> capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().name());
-            if(capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())){
+            if (capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())) {
                 String message = event.getMessage().getFormattedMessage();
                 ReadOnlyStringMap contextData = event.getContextData();
                 Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
-                LogAppendManager.appendLogs(message, MDCTags, event.getLevel().name(), event.getThrown());
+                LogAppendManager.appendLogs(message, MDCTags, event.getLoggerName(), event.getThreadName(),
+                        event.getLevel().name(), event.getTimeMillis(), event.getThrown());
             }
         } catch (Exception e) {
             try {
                 CustomLogManager.error("CapaAwsLog4jAppender appender log error.", e);
                 //Enhance function without affecting function
                 getCounterOpt().ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), e.getClass().getName()))
-                            .add(COUNTER_NUM);
+                    longCounter.bind(Attributes
+                            .of(AttributeKey.stringKey(LOG_LOG4J_APPENDER_ERROR_TYPE), e.getClass().getName()))
+                               .add(COUNTER_NUM);
                 });
-            } finally {
+            } catch (Throwable ex) {
             }
 
         }
