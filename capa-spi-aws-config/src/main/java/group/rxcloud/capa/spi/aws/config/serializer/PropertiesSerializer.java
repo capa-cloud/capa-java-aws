@@ -23,7 +23,7 @@ import software.amazon.awssdk.core.SdkBytes;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -47,7 +47,7 @@ public class PropertiesSerializer implements Serializer {
         } catch (IOException e) {
             LOGGER.error("properties load error", e);
         }
-        Map<String, String> map = new LinkedHashMap<>(properties.size());
+        Map<String, String> map = new HashMap<>(properties.size());
         for (String key : properties.stringPropertyNames()) {
             map.put(key, properties.getProperty(key));
         }
