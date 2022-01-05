@@ -36,9 +36,8 @@ public class Configuration<T> {
     public String toString() {
         return "Configuration{" +
                 "clientConfigurationVersion='" + clientConfigurationVersion + '\'' +
-                ", configurationItem=" + configurationItem +
-                ", lock=" + lock +
-                ", listeners=" + listeners +
+                ", configurationItem=" + configurationItem.getContent().toString() +
+                ", listenersCount=" + listeners.size() +
                 ", initialized=" + initialized +
                 ", subscribed=" + subscribed +
                 '}';

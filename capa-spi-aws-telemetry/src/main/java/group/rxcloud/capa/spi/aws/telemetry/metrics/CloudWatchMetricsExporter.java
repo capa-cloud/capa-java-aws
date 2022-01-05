@@ -73,6 +73,8 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static final String APPID = "AppId";
 
+    private static final String ENV = "Env";
+
     private static final String UNKNOWN = "UNKNOWN";
 
     public CloudWatchMetricsExporter(Supplier<SamplerConfig> samplerConfig) {
@@ -96,11 +98,24 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         }
     }
 
+    private static String getEnv() {
+        try {
+            String env = CapaFoundation.getEnv(FoundationType.TRIP);
+            return env == null ? UNKNOWN : env;
+        } catch (Throwable e) {
+            return UNKNOWN;
+        }
+    }
+
     static List<Dimension> buildDimension(Attributes attributes) {
         List<Dimension> dimensions = new ArrayList<>();
         dimensions.add(Dimension.builder()
                                 .name(APPID)
                                 .value(getAppId())
+                                .build());
+        dimensions.add(Dimension.builder()
+                                .name(ENV)
+                                .value(getEnv())
                                 .build());
         if (attributes.isEmpty()) {
             return dimensions;
@@ -284,10 +299,14 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     @Override
     protected CompletableResultCode doExport(Collection<MetricData> metrics) {
-        Map<String, List<CollectedMetrics>> collectedMetrics = collectedMetricsByNamespace(metrics);
-        METRICS_CACHE.collectAllByNamespace(collectedMetrics);
+        try {
+            Map<String, List<CollectedMetrics>> collectedMetrics = collectedMetricsByNamespace(metrics);
+            METRICS_CACHE.collectAllByNamespace(collectedMetrics);
 
-        collectedMetrics.forEach(CloudWatchMetricsExporter::convertAndSend);
+            collectedMetrics.forEach(CloudWatchMetricsExporter::convertAndSend);
+        } catch (Throwable e) {
+            log.warn("Fail to export metrics.", e);
+        }
 
         return CompletableResultCode.ofSuccess();
     }

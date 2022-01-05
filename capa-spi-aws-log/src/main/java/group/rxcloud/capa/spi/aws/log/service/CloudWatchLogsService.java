@@ -21,6 +21,8 @@ import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
+import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -43,7 +45,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 public class CloudWatchLogsService {
 
@@ -53,9 +54,9 @@ public class CloudWatchLogsService {
     private static final String LOG_GROUP_NAME;
     private static final String LOG_GROUP_FORMAT = "application/%s/%s";
     /**
-     * Log Stream format is appid/ip/count
+     * Log Stream format is appid/count
      */
-    private static final String LOG_STREAM_FORMAT = "%s/%s/%s";
+    private static final String LOG_STREAM_FORMAT = "%s/%s";
     private static final String CLOUD_WATCH_LOGS_ERROR_NAMESPACE = "CloudWatchLogs";
     private static final String CLOUD_WATCH_LOGS_ERROR_METRIC_NAME = "LogsError";
     private static final String CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE = "PutLogEventError";
@@ -65,6 +66,7 @@ public class CloudWatchLogsService {
     private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
     private static final int DEFAULT_MAX_LOG_STREAM_COUNT = 10;
     private static final List<String> LOG_STREAM_NAMES = new ArrayList<>();
+    private static final String LOG_STREAM_COUNT_NAME = "logStreamCount";
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
@@ -80,11 +82,9 @@ public class CloudWatchLogsService {
             LongCounter longCounter = meter.counterBuilder(CLOUD_WATCH_LOGS_ERROR_METRIC_NAME).build();
             LONG_COUNTER = Optional.ofNullable(longCounter);
         });
-
-
     }
 
-    //Synchronously put log event
+    // Synchronously put log event
     public static void putLogEvent(String message, String logStreamName) {
         Objects.requireNonNull(logStreamName, "Log stream name is null");
         // Get sequence token
@@ -207,6 +207,7 @@ public class CloudWatchLogsService {
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
+            CustomLogManager.error("CloudWatchLogsService createLogStream error.", e);
             // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_GROUP_ERROR);
             throw new CapaException(e);
         }
@@ -242,14 +243,18 @@ public class CloudWatchLogsService {
                 }
             }
         } catch (Throwable e) {
+            CustomLogManager.error("CloudWatchLogsService createLogStream error.", e);
             // TODO change to ErrorCodeContext. Eg: throw new CapaException(CapaErrorContext.CREATE_LOG_STREAM_ERROR);
             throw new CapaException(e);
         }
     }
 
     private static void createLogStreamNames() {
-        for (int i = 0; i < DEFAULT_MAX_LOG_STREAM_COUNT; i++) {
-            LOG_STREAM_NAMES.add(String.format(LOG_STREAM_FORMAT, APP_ID, UUID.randomUUID().toString(), i));
+        int logStreamCount = LogConfiguration.containsKey(LOG_STREAM_COUNT_NAME)
+                ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
+                : DEFAULT_MAX_LOG_STREAM_COUNT;
+        for (int i = 0; i < logStreamCount; i++) {
+            LOG_STREAM_NAMES.add(String.format(LOG_STREAM_FORMAT, APP_ID, i));
         }
     }
 
