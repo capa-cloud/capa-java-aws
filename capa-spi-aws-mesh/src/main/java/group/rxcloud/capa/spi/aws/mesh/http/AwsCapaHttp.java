@@ -27,20 +27,15 @@ import group.rxcloud.capa.spi.http.CapaSerializeHttpSpi;
 import group.rxcloud.capa.spi.http.config.RpcServiceOptions;
 import group.rxcloud.cloudruntimes.domain.core.invocation.HttpExtension;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
-import okhttp3.Headers;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.utils.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 
 /**
@@ -80,32 +75,6 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
                 urlParameters,
                 type,
                 (AwsRpcServiceOptions) rpcServiceOptions);
-    }
-
-    private static final String ACCEPT_KEY = "accept";
-    private static final String ACCEPT_ALL = "*/*";
-
-    private void setRequestHeaderOfAccept(Map<String, String> headers, RequestBody body) {
-        final List<String> accepts = new ArrayList<>(3);
-        // 1. set user accept header
-        final String userAcceptValue = headers.get(ACCEPT_KEY);
-        if (userAcceptValue != null && userAcceptValue.length() > 0) {
-            accepts.add(userAcceptValue);
-        }
-        // 2. set accept header same with content-type
-        if (body.contentType() != null) {
-            final String contentType = Objects.requireNonNull(body.contentType()).toString();
-            if (contentType.length() > 0) {
-                accepts.add(contentType);
-            }
-        }
-        // 3. add */* at last
-        accepts.add(ACCEPT_ALL);
-
-        final String acceptStr = accepts.stream()
-                .distinct()
-                .collect(Collectors.joining(","));
-        headers.put(ACCEPT_KEY, acceptStr);
     }
 
     private interface AwsHttpInvoker {
@@ -208,46 +177,13 @@ public class AwsCapaHttp extends CapaSerializeHttpSpi {
             }
 
             // async invoke
-            CompletableFuture<HttpResponse<T>> asyncInvoke0 = invokeHttp(
+            return invokeHttpFacade(
                     appMeshHttpUrl,
                     requestData,
                     httpMethod,
                     headers,
+                    urlParameters,
                     type);
-            asyncInvoke0.exceptionally(throwable -> {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("[Capa.Rpc.Client.http] [AwsCapaHttp.doAsyncInvoke] async invoke error", throwable);
-                }
-                throw new CapaException(CapaErrorContext.DEPENDENT_SERVICE_ERROR, throwable);
-            });
-            return asyncInvoke0;
-        }
-
-        private <T> CompletableFuture<HttpResponse<T>> invokeHttp(String url,
-                                                                  Object requestData,
-                                                                  String httpMethod,
-                                                                  Map<String, String> headers,
-                                                                  TypeRef<T> type) {
-            // generate http request body
-            RequestBody body = getRequestBodyWithSerialize(requestData, headers);
-
-            setRequestHeaderOfAccept(headers, body);
-
-            Headers header = getRequestHeaderWithParams(headers);
-
-            if (logger.isDebugEnabled()) {
-                logger.debug("[Capa.Rpc.Client.http] [AwsCapaHttp.invokeHttp] final request url[{}] header[{}] httpMethod[{}]",
-                        url, header, httpMethod);
-            }
-
-            // make http request
-            Request request = new Request.Builder()
-                    .url(url)
-                    .headers(header)
-                    .method(httpMethod, body)
-                    .build();
-
-            return doAsyncInvoke0(request, type);
         }
     }
 }
