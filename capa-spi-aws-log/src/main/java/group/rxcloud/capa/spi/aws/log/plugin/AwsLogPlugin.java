@@ -1,0 +1,63 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package group.rxcloud.capa.spi.aws.log.plugin;
+
+import group.rxcloud.capa.component.log.DefaultLogPlugin;
+import group.rxcloud.capa.component.log.LogPlugin;
+import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.Map;
+
+/**
+ * Aws log plugin.
+ */
+public class AwsLogPlugin implements LogPlugin {
+
+    private static final String KEY_SCENARIO_ENABLE = "scenarioEnable";
+
+    private static final Logger log = LoggerFactory.getLogger("CapaAwsTagLogger");
+
+    @Override
+    public void logTags(String scenario, Map<String, String> tags) {
+        if (filterScenario(scenario) && logsCanOutputByTags(tags)) {
+            log.info(DefaultLogPlugin.buildLogData(scenario, tags));
+        }
+    }
+
+    @Override
+    public boolean logsCanOutput(String logLevel) {
+        return true;
+    }
+
+    @Override
+    public boolean logsCanOutputByTags(Map<String, String> tags) {
+        return true;
+    }
+
+    private static boolean filterScenario(String scenario) {
+        String scenarios = LogConfiguration.get(KEY_SCENARIO_ENABLE);
+        if (scenarios != null) {
+            String[] splits = scenarios.split(",");
+            return Arrays.stream(splits).anyMatch(s -> s.trim().equalsIgnoreCase(scenario));
+        }
+        return false;
+    }
+
+}
