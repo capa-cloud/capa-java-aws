@@ -188,7 +188,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             LOGGER.debug("[[type=Capa.Config.initConfig]] call getconfiguration in init process,response:{}", response);
             return response;
         })
-                .doOnError(e -> LOGGER.error("[[type=Capa.Config.initConfig]] error occurs when getconfiguration in init process, request:{}", request, e))
+                .doOnError(e -> LOGGER.warn("[[type=Capa.Config.initConfig]] error occurs when getconfiguration in init process, request:{}", request, e))
                 .map(resp -> initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion()))
                 .block();
     }
@@ -229,7 +229,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
                             resp = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
                         } catch (InterruptedException | ExecutionException | TimeoutException e) {
                             //catch error,log error and not trigger listeners
-                            LOGGER.error("[[type=Capa.Config.subscribePolling]] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                            LOGGER.warn("[[type=Capa.Config.subscribePolling]] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
                         }
 
                         LOGGER.debug("[[type=Capa.Config.subscribePolling]] subscribe polling task end,response:{}", resp);
