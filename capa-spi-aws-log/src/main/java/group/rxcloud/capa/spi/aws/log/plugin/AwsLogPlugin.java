@@ -49,9 +49,9 @@ public class AwsLogPlugin implements CatLogPlugin {
         String scenarios = LogConfiguration.get(KEY_SCENARIO_ENABLE);
         if (scenarios != null) {
             String[] splits = scenarios.split(",");
-            return Arrays.stream(splits).anyMatch(s -> s.trim().equalsIgnoreCase(scenario));
+            return Arrays.stream(splits)
+                    .anyMatch(s -> s.trim().equalsIgnoreCase(scenario));
         }
         return false;
     }
-
 }

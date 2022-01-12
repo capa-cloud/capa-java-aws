@@ -50,7 +50,6 @@
             <artifactId>capa-cat</artifactId>
         </dependency>
 
-
         <!-- cloud watch logs -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
