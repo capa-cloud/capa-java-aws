@@ -21,7 +21,7 @@ import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
-import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
 import group.rxcloud.capa.spi.aws.log.handle.MessageConsumer;
 import group.rxcloud.capa.spi.aws.log.handle.MessageManager;
 import io.opentelemetry.api.trace.Span;
@@ -164,8 +164,8 @@ public class LogAppendManager {
         // put logs to CloudWatchLogs
         if (!logMessageMap.isEmpty()) {
             String logMessage = GSON.toJson(logMessageMap);
-            if (!LogConfiguration.containsKey(PUT_LOG_ASYNC_SWITCH)
-                    || Boolean.FALSE.toString().equalsIgnoreCase(LogConfiguration.get(PUT_LOG_ASYNC_SWITCH))) {
+            if (!CapaComponentLogConfiguration.getInstance().containsKey(PUT_LOG_ASYNC_SWITCH)
+                    || Boolean.FALSE.toString().equalsIgnoreCase(CapaComponentLogConfiguration.getInstance().get(PUT_LOG_ASYNC_SWITCH))) {
                 System.out.println(logMessage);
             } else {
                 MessageConsumer consumer = MessageManager.getInstance().getConsumer();

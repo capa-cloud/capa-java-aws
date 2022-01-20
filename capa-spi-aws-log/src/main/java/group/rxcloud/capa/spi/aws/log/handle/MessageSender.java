@@ -23,7 +23,7 @@ import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
-import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
+import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
 import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.service.CloudWatchLogsService;
 import io.opentelemetry.api.common.AttributeKey;
@@ -73,7 +73,7 @@ public class MessageSender extends Thread {
 
     private static void initFlowRules() {
         List<FlowRule> flowRules = new ArrayList<>();
-        int ruleCount = LogConfiguration.containsKey(LOG_STREAM_COUNT_NAME)
+        int ruleCount = CapaComponentLogConfiguration.getInstance().containsKey(LOG_STREAM_COUNT_NAME)
                 ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
                 : DEFAULT_MAX_RULE_COUNT;
 
@@ -126,8 +126,8 @@ public class MessageSender extends Thread {
     }
 
     private void putLogToCloudWatch(List<String> logMessages) {
-        if (!LogConfiguration.containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
-                || Boolean.TRUE.toString().equalsIgnoreCase(LogConfiguration.get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
+        if (!CapaComponentLogConfiguration.getInstance().containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
+                || Boolean.TRUE.toString().equalsIgnoreCase(CapaComponentLogConfiguration.getInstance().get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
             // put logs by agent
             putLogsByAgent(logMessages);
         } else {

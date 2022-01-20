@@ -18,9 +18,9 @@ package group.rxcloud.capa.spi.aws.log.appender;
 
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.filter.factory.LogOutputFactoryFilter;
 import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
-import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLog4jAppenderSpi;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -95,7 +95,7 @@ public class CapaAwsLog4jAppender extends CapaLog4jAppenderSpi {
                 return;
             }
             Optional<CapaLogLevel> capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().name());
-            if (capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())) {
+            if (capaLogLevel.isPresent() && LogOutputFactoryFilter.logCanOutput(capaLogLevel.get())) {
                 String message = event.getMessage().getFormattedMessage();
                 ReadOnlyStringMap contextData = event.getContextData();
                 Map<String, String> MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
