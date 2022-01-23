@@ -49,30 +49,44 @@ import java.util.Optional;
 public class CloudWatchLogsService {
 
     private static final CloudWatchLogsClient CLOUD_WATCH_LOGS_CLIENT;
+
     private static final String APP_ID;
+
     private static final String APP_ENV;
+
     private static final String LOG_GROUP_NAME;
-    private static final String LOG_GROUP_FORMAT = "application/%s/%s";
+
+    private static final String LOG_GROUP_FORMAT = "/aws/application/%s";
+
     /**
      * Log Stream format is appid/count
      */
-    private static final String LOG_STREAM_FORMAT = "%s/%s";
+    private static final String LOG_STREAM_FORMAT = "app-%s-cloudwatch-api-%s";
+
     private static final String CLOUD_WATCH_LOGS_ERROR_NAMESPACE = "CloudWatchLogs";
+
     private static final String CLOUD_WATCH_LOGS_ERROR_METRIC_NAME = "LogsError";
+
     private static final String CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE = "PutLogEventError";
+
     private static final String CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE = "PutLogEventsError";
+
     private static final Integer COUNTER_NUM = 1;
 
     private static final Optional<TelemetryHooks> TELEMETRY_HOOKS;
+
     private static final int DEFAULT_MAX_LOG_STREAM_COUNT = 10;
+
     private static final List<String> LOG_STREAM_NAMES = new ArrayList<>();
+
     private static final String LOG_STREAM_COUNT_NAME = "logStreamCount";
+
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
         APP_ENV = buildApplicationEnv();
         APP_ID = buildAppId();
-        LOG_GROUP_NAME = String.format(LOG_GROUP_FORMAT, APP_ENV, APP_ID);
+        LOG_GROUP_NAME = String.format(LOG_GROUP_FORMAT, APP_ENV);
         CLOUD_WATCH_LOGS_CLIENT = CloudWatchLogsClient.builder().build();
         createLogGroup();
         createLogStream();
@@ -89,29 +103,30 @@ public class CloudWatchLogsService {
         Objects.requireNonNull(logStreamName, "Log stream name is null");
         // Get sequence token
         DescribeLogStreamsRequest logStreamsRequest = DescribeLogStreamsRequest.builder()
-                .logGroupName(LOG_GROUP_NAME)
-                .logStreamNamePrefix(logStreamName)
-                .build();
-        DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(logStreamsRequest);
+                                                                               .logGroupName(LOG_GROUP_NAME)
+                                                                               .logStreamNamePrefix(logStreamName)
+                                                                               .build();
+        DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT
+                .describeLogStreams(logStreamsRequest);
         String sequenceToken = "";
         if (describeLogStreamsResponse != null
                 && !CollectionUtils.isNullOrEmpty(describeLogStreamsResponse.logStreams())) {
             sequenceToken = describeLogStreamsResponse.logStreams()
-                    .get(0)
-                    .uploadSequenceToken();
+                                                      .get(0)
+                                                      .uploadSequenceToken();
         }
 
         InputLogEvent inputLogEvent = InputLogEvent.builder()
-                .timestamp(System.currentTimeMillis())
-                .message(message)
-                .build();
+                                                   .timestamp(System.currentTimeMillis())
+                                                   .message(message)
+                                                   .build();
 
         PutLogEventsRequest putLogEventsRequest = PutLogEventsRequest.builder()
-                .logGroupName(LOG_GROUP_NAME)
-                .logStreamName(logStreamName)
-                .logEvents(inputLogEvent)
-                .sequenceToken(sequenceToken)
-                .build();
+                                                                     .logGroupName(LOG_GROUP_NAME)
+                                                                     .logStreamName(logStreamName)
+                                                                     .logEvents(inputLogEvent)
+                                                                     .sequenceToken(sequenceToken)
+                                                                     .build();
         PutLogEventsResponse putLogEventsResponse = CLOUD_WATCH_LOGS_CLIENT.putLogEvents(putLogEventsRequest);
         // If the response is abnormal, try counting.
         if (putLogEventsResponse == null
@@ -120,8 +135,9 @@ public class CloudWatchLogsService {
             try {
                 //Enhance function without affecting function
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE))
-                            .add(COUNTER_NUM);
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE),
+                            CLOUD_WATCH_LOGS_PUT_LOG_EVENT_ERROR_TYPE))
+                               .add(COUNTER_NUM);
                 });
             } finally {
             }
@@ -132,32 +148,33 @@ public class CloudWatchLogsService {
         // Get sequence token
         Objects.requireNonNull(logStreamName, "Log stream name is null");
         DescribeLogStreamsRequest logStreamsRequest = DescribeLogStreamsRequest.builder()
-                .logGroupName(LOG_GROUP_NAME)
-                .logStreamNamePrefix(logStreamName)
-                .build();
-        DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(logStreamsRequest);
+                                                                               .logGroupName(LOG_GROUP_NAME)
+                                                                               .logStreamNamePrefix(logStreamName)
+                                                                               .build();
+        DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT
+                .describeLogStreams(logStreamsRequest);
         String sequenceToken = "";
         if (describeLogStreamsResponse != null
                 && !CollectionUtils.isNullOrEmpty(describeLogStreamsResponse.logStreams())) {
             sequenceToken = describeLogStreamsResponse.logStreams()
-                    .get(0)
-                    .uploadSequenceToken();
+                                                      .get(0)
+                                                      .uploadSequenceToken();
         }
         List<InputLogEvent> inputLogEvents = new ArrayList<>();
         for (String message : messages) {
             InputLogEvent inputLogEvent = InputLogEvent.builder()
-                    .timestamp(System.currentTimeMillis())
-                    .message(message)
-                    .build();
+                                                       .timestamp(System.currentTimeMillis())
+                                                       .message(message)
+                                                       .build();
             inputLogEvents.add(inputLogEvent);
         }
 
         PutLogEventsRequest putLogEventsRequest = PutLogEventsRequest.builder()
-                .logGroupName(LOG_GROUP_NAME)
-                .logStreamName(logStreamName)
-                .logEvents(inputLogEvents)
-                .sequenceToken(sequenceToken)
-                .build();
+                                                                     .logGroupName(LOG_GROUP_NAME)
+                                                                     .logStreamName(logStreamName)
+                                                                     .logEvents(inputLogEvents)
+                                                                     .sequenceToken(sequenceToken)
+                                                                     .build();
         PutLogEventsResponse putLogEventsResponse = CLOUD_WATCH_LOGS_CLIENT.putLogEvents(putLogEventsRequest);
         // If the response is abnormal, try counting.
         if (putLogEventsResponse == null
@@ -166,8 +183,9 @@ public class CloudWatchLogsService {
             try {
                 //Enhance function without affecting function
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE), CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE))
-                            .add(COUNTER_NUM);
+                    longCounter.bind(Attributes.of(AttributeKey.stringKey(CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE),
+                            CLOUD_WATCH_LOGS_PUT_LOG_EVENTS_ERROR_TYPE))
+                               .add(COUNTER_NUM);
                 });
             } finally {
             }
@@ -179,31 +197,35 @@ public class CloudWatchLogsService {
     }
 
     private static String buildApplicationEnv() {
-        return CapaFoundation.getEnv(FoundationType.TRIP) == "" ? "default" : CapaFoundation.getEnv(FoundationType.TRIP).toLowerCase();
+        return CapaFoundation.getEnv(FoundationType.TRIP) == "" ? "default"
+                : CapaFoundation.getEnv(FoundationType.TRIP).toUpperCase();
     }
 
     private static void createLogGroup() {
         try {
             //Describe log group to confirm whether the log group has been created..
             DescribeLogGroupsRequest describeLogGroupsRequest = DescribeLogGroupsRequest.builder()
-                    .logGroupNamePrefix(LOG_GROUP_NAME)
-                    .build();
-            DescribeLogGroupsResponse describeLogGroupsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogGroups(describeLogGroupsRequest);
+                                                                                        .logGroupNamePrefix(
+                                                                                                LOG_GROUP_NAME)
+                                                                                        .build();
+            DescribeLogGroupsResponse describeLogGroupsResponse = CLOUD_WATCH_LOGS_CLIENT
+                    .describeLogGroups(describeLogGroupsRequest);
             // If the log group is not created, then create the log group.
             List<LogGroup> logGroups = describeLogGroupsResponse.logGroups();
             Boolean hasLogGroup = Boolean.FALSE;
             if (!CollectionUtils.isNullOrEmpty(logGroups)) {
                 Optional<LogGroup> logGroupOptional = logGroups.stream()
-                        .filter(logGroup -> LOG_GROUP_NAME.equalsIgnoreCase(logGroup.logGroupName()))
-                        .findAny();
+                                                               .filter(logGroup -> LOG_GROUP_NAME
+                                                                       .equalsIgnoreCase(logGroup.logGroupName()))
+                                                               .findAny();
                 if (logGroupOptional.isPresent()) {
                     hasLogGroup = Boolean.TRUE;
                 }
             }
             if (!describeLogGroupsResponse.hasLogGroups() || !hasLogGroup) {
                 CreateLogGroupRequest createLogGroupRequest = CreateLogGroupRequest.builder()
-                        .logGroupName(LOG_GROUP_NAME)
-                        .build();
+                                                                                   .logGroupName(LOG_GROUP_NAME)
+                                                                                   .build();
                 CLOUD_WATCH_LOGS_CLIENT.createLogGroup(createLogGroupRequest);
             }
         } catch (Throwable e) {
@@ -219,26 +241,31 @@ public class CloudWatchLogsService {
             for (String logStreamName : LOG_STREAM_NAMES) {
                 //Describe log stream to confirm whether the log stream has been created.
                 DescribeLogStreamsRequest describeLogStreamsRequest = DescribeLogStreamsRequest.builder()
-                        .logGroupName(LOG_GROUP_NAME)
-                        .logStreamNamePrefix(logStreamName)
-                        .build();
-                DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT.describeLogStreams(describeLogStreamsRequest);
+                                                                                               .logGroupName(
+                                                                                                       LOG_GROUP_NAME)
+                                                                                               .logStreamNamePrefix(
+                                                                                                       logStreamName)
+                                                                                               .build();
+                DescribeLogStreamsResponse describeLogStreamsResponse = CLOUD_WATCH_LOGS_CLIENT
+                        .describeLogStreams(describeLogStreamsRequest);
                 // If the log stream is not created, then create the log stream.
                 List<LogStream> logStreams = describeLogStreamsResponse.logStreams();
                 Boolean hasLogStream = Boolean.FALSE;
                 if (!CollectionUtils.isNullOrEmpty(logStreams)) {
                     Optional<LogStream> logStreamOptional = logStreams.stream()
-                            .filter(logStream -> logStreamName.equalsIgnoreCase(logStream.logStreamName()))
-                            .findAny();
+                                                                      .filter(logStream -> logStreamName
+                                                                              .equalsIgnoreCase(
+                                                                                      logStream.logStreamName()))
+                                                                      .findAny();
                     if (logStreamOptional.isPresent()) {
                         hasLogStream = Boolean.TRUE;
                     }
                 }
                 if (!describeLogStreamsResponse.hasLogStreams() || !hasLogStream) {
                     CreateLogStreamRequest createLogStreamRequest = CreateLogStreamRequest.builder()
-                            .logGroupName(LOG_GROUP_NAME)
-                            .logStreamName(logStreamName)
-                            .build();
+                                                                                          .logGroupName(LOG_GROUP_NAME)
+                                                                                          .logStreamName(logStreamName)
+                                                                                          .build();
                     CLOUD_WATCH_LOGS_CLIENT.createLogStream(createLogStreamRequest);
                 }
             }
@@ -250,9 +277,12 @@ public class CloudWatchLogsService {
     }
 
     private static void createLogStreamNames() {
-        int logStreamCount = CapaComponentLogConfiguration.getInstance().containsKey(LOG_STREAM_COUNT_NAME)
-                ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
-                : DEFAULT_MAX_LOG_STREAM_COUNT;
+        int logStreamCount = DEFAULT_MAX_LOG_STREAM_COUNT;
+        Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
+        if (configuration.isPresent() && configuration.get().containsKey(LOG_STREAM_COUNT_NAME)) {
+            logStreamCount = Integer.parseInt(LOG_STREAM_COUNT_NAME);
+        }
+
         for (int i = 0; i < logStreamCount; i++) {
             LOG_STREAM_NAMES.add(String.format(LOG_STREAM_FORMAT, APP_ID, i));
         }

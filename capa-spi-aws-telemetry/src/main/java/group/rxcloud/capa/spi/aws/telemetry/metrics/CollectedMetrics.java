@@ -27,7 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class CollectedMetrics {
 
-    String nameSpace;
+    String namespace;
+
+    String meterName;
 
     String metricName;
 
@@ -39,8 +41,9 @@ class CollectedMetrics {
 
     StatisticSet statisticSet;
 
-    CollectedMetrics(String nameSpace, String metricName, long millis, List<Dimension> dimensions) {
-        this.nameSpace = nameSpace;
+    CollectedMetrics(String namespace, String meterName, String metricName, long millis, List<Dimension> dimensions) {
+        this.namespace = namespace;
+        this.meterName = meterName;
         this.metricName = metricName;
         this.dimensions = dimensions;
         instant = Instant.ofEpochMilli(millis);

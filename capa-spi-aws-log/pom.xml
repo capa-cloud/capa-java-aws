@@ -23,11 +23,10 @@
     <parent>
         <artifactId>capa-aws-parent</artifactId>
         <groupId>group.rxcloud</groupId>
-        <version>1.11.13.4-alpha-1</version>
+        <version>1.11.13.4.RELEASE</version>
     </parent>
 
     <artifactId>capa-spi-aws-log</artifactId>
-    <version>1.11.13.4-alpha-1</version>
 
     <properties>
         <log4j.version>2.16.0</log4j.version>
@@ -40,7 +39,6 @@
         <dependency>
             <groupId>group.rxcloud</groupId>
             <artifactId>capa-spi-aws-infrastructure</artifactId>
-            <version>1.11.13.4-alpha-1</version>
         </dependency>
 
         <dependency>

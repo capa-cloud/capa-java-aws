@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Aws log plugin.
@@ -42,11 +43,15 @@ public class AwsLogPlugin implements CatLogPlugin {
     }
 
     private static boolean filterScenario(String scenario) {
-        if (!CapaComponentLogConfiguration.getInstance().containsKey(KEY_SCENARIO_ENABLE)) {
+        Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
+        if (!configuration.isPresent()) {
+            return true;
+        }
+        if (!configuration.get().containsKey(KEY_SCENARIO_ENABLE)) {
             return true;
         }
 
-        String scenarios = CapaComponentLogConfiguration.getInstance().get(KEY_SCENARIO_ENABLE);
+        String scenarios = configuration.get().get(KEY_SCENARIO_ENABLE);
         if (scenarios != null) {
             String[] splits = scenarios.split(",");
             return Arrays.stream(splits)
