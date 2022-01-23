@@ -21,7 +21,7 @@ import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.infrastructure.hook.TelemetryHooks;
-import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
+import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
 import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -250,7 +250,7 @@ public class CloudWatchLogsService {
     }
 
     private static void createLogStreamNames() {
-        int logStreamCount = CapaComponentLogConfiguration.getInstance().containsKey(LOG_STREAM_COUNT_NAME)
+        int logStreamCount = LogConfiguration.containsKey(LOG_STREAM_COUNT_NAME)
                 ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
                 : DEFAULT_MAX_LOG_STREAM_COUNT;
         for (int i = 0; i < logStreamCount; i++) {

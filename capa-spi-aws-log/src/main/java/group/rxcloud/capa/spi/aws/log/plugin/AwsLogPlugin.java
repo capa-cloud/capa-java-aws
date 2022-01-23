@@ -18,7 +18,7 @@ package group.rxcloud.capa.spi.aws.log.plugin;
 
 import group.rxcloud.capa.addons.cat.CatLogPlugin;
 import group.rxcloud.capa.addons.cat.DefaultCatLogPlugin;
-import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
+import group.rxcloud.capa.spi.aws.log.configuration.LogConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +42,11 @@ public class AwsLogPlugin implements CatLogPlugin {
     }
 
     private static boolean filterScenario(String scenario) {
-        if (!CapaComponentLogConfiguration.getInstance().containsKey(KEY_SCENARIO_ENABLE)) {
+        if (!LogConfiguration.containsKey(KEY_SCENARIO_ENABLE)) {
             return true;
         }
 
-        String scenarios = CapaComponentLogConfiguration.getInstance().get(KEY_SCENARIO_ENABLE);
+        String scenarios = LogConfiguration.get(KEY_SCENARIO_ENABLE);
         if (scenarios != null) {
             String[] splits = scenarios.split(",");
             return Arrays.stream(splits)
