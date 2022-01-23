@@ -20,9 +20,9 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.filter.factory.LogOutputFactoryFilter;
 import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
 import group.rxcloud.capa.spi.aws.log.manager.LogAppendManager;
-import group.rxcloud.capa.spi.aws.log.manager.LogManager;
 import group.rxcloud.capa.spi.log.CapaLogbackAppenderSpi;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -87,7 +87,7 @@ public class CapaAwsLogbackAppender extends CapaLogbackAppenderSpi {
                 return;
             }
             Optional<CapaLogLevel> capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().levelStr);
-            if (capaLogLevel.isPresent() && LogManager.logsCanOutput(capaLogLevel.get())) {
+            if (capaLogLevel.isPresent() && LogOutputFactoryFilter.logCanOutput(capaLogLevel.get())) {
                 String message = event.getFormattedMessage();
                 Map<String, String> MDCTags = event.getMDCPropertyMap();
                 LogAppendManager.appendLogs(message, MDCTags, event.getLoggerName(), event.getThreadName(),
