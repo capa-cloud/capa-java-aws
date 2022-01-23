@@ -38,32 +38,46 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageSender extends Thread {
+
     private static final int MAX_COUNT_PER_CHUNK = 100;
+
     private static final long WAIT_INTERVAL = 20L;
+
     private static final int MAX_SIZE_PER_CHUNK = 1024 * 1024;
+
     private static final String PUT_LOG_EVENTS_RESOURCE_NAME = "CloudWatchLogs.putLogEvents";
+
     private static final String MESSAGE_SENDER_ERROR_NAMESPACE = "LogMessageSenderError";
+
     private static final String MESSAGE_SENDER_ERROR_METRIC_NAME = "LogsSenderError";
+
     private static final String LOG_STREAM_COUNT_NAME = "logStreamCount";
+
     private static final int DEFAULT_MAX_RULE_COUNT = 10;
+
     private static final String CLOUD_WATCH_AGENT_SWITCH_NAME = "cloudWatchAgentSwitch";
+
     private static Optional<LongCounter> LONG_COUNTER = Optional.empty();
 
     static {
         initFlowRules();
         Mixer.telemetryHooksNullable()
-                .ifPresent(telemetryHooks -> {
-                    Meter meter = telemetryHooks.buildMeter(MESSAGE_SENDER_ERROR_NAMESPACE).block();
-                    LongCounter longCounter = meter.counterBuilder(MESSAGE_SENDER_ERROR_METRIC_NAME).build();
-                    LONG_COUNTER = Optional.ofNullable(longCounter);
-                });
+             .ifPresent(telemetryHooks -> {
+                 Meter meter = telemetryHooks.buildMeter(MESSAGE_SENDER_ERROR_NAMESPACE).block();
+                 LongCounter longCounter = meter.counterBuilder(MESSAGE_SENDER_ERROR_METRIC_NAME).build();
+                 LONG_COUNTER = Optional.ofNullable(longCounter);
+             });
     }
 
     private final ChunkQueue chunkQueue;
+
     private final LinkedList<CompressedChunk> readCompressedChunk;
+
     private volatile boolean running = true;
+
     private volatile CountDownLatch shutdownLatch;
 
     public MessageSender(ChunkQueue chunkQueue) {
@@ -73,11 +87,14 @@ public class MessageSender extends Thread {
 
     private static void initFlowRules() {
         List<FlowRule> flowRules = new ArrayList<>();
-        int ruleCount = CapaComponentLogConfiguration.getInstance().containsKey(LOG_STREAM_COUNT_NAME)
-                ? Integer.parseInt(LOG_STREAM_COUNT_NAME)
-                : DEFAULT_MAX_RULE_COUNT;
+        AtomicInteger ruleCount = new AtomicInteger(DEFAULT_MAX_RULE_COUNT);
+        CapaComponentLogConfiguration.getInstanceOpt().ifPresent(configuration -> {
+            if (configuration.containsKey(LOG_STREAM_COUNT_NAME)) {
+                ruleCount.set(Integer.parseInt(LOG_STREAM_COUNT_NAME));
+            }
+        });
 
-        for (int i = 0; i < ruleCount; i++) {
+        for (int i = 0; i < ruleCount.get(); i++) {
             FlowRule flowRule = new FlowRule();
             flowRule.setResource(PUT_LOG_EVENTS_RESOURCE_NAME + "_" + i);
             flowRule.setGrade(RuleConstant.FLOW_GRADE_QPS);
@@ -105,8 +122,9 @@ public class MessageSender extends Thread {
             } catch (Throwable throwable) {
                 CustomLogManager.error("MessageSender build chunk error.", throwable);
                 LONG_COUNTER.ifPresent(longCounter -> {
-                    longCounter.bind(Attributes.of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getClass().getName()))
-                            .add(1);
+                    longCounter.bind(Attributes
+                            .of(AttributeKey.stringKey("BuildCompressedChunkError"), throwable.getClass().getName()))
+                               .add(1);
                 });
 
             }
@@ -126,8 +144,10 @@ public class MessageSender extends Thread {
     }
 
     private void putLogToCloudWatch(List<String> logMessages) {
-        if (!CapaComponentLogConfiguration.getInstance().containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
-                || Boolean.TRUE.toString().equalsIgnoreCase(CapaComponentLogConfiguration.getInstance().get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
+        Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
+        if (!configuration.isPresent()
+                || !configuration.get().containsKey(CLOUD_WATCH_AGENT_SWITCH_NAME)
+                || Boolean.TRUE.toString().equalsIgnoreCase(configuration.get().get(CLOUD_WATCH_AGENT_SWITCH_NAME))) {
             // put logs by agent
             putLogsByAgent(logMessages);
         } else {
@@ -154,8 +174,9 @@ public class MessageSender extends Thread {
         } catch (Throwable throwable) {
             CustomLogManager.error("MessageSender send message error.", throwable);
             LONG_COUNTER.ifPresent(longCounter -> {
-                longCounter.bind(Attributes.of(AttributeKey.stringKey("SenderPutLogEventsError"), throwable.getClass().getName()))
-                        .add(1);
+                longCounter.bind(Attributes
+                        .of(AttributeKey.stringKey("SenderPutLogEventsError"), throwable.getClass().getName()))
+                           .add(1);
             });
         }
     }

@@ -20,10 +20,11 @@ import com.google.gson.Gson;
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
-import group.rxcloud.capa.infrastructure.hook.Mixer;
+import group.rxcloud.capa.spi.aws.log.appender.CapaLogEvent;
 import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
 import group.rxcloud.capa.spi.aws.log.handle.MessageConsumer;
 import group.rxcloud.capa.spi.aws.log.handle.MessageManager;
+import group.rxcloud.capa.spi.aws.log.service.LogMetrics;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.Tracer;
@@ -39,53 +40,53 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class LogAppendManager {
+public final class LogAppendManager {
 
     /**
      * Tag identifier prefix.
      */
-    protected static final String TAG_PREFIX = "[[";
+    private static final String TAG_PREFIX = "[[";
 
     /**
      * Tag identifier suffix.
      */
-    protected static final String TAG_SUFFIX = "]]";
+    private static final String TAG_SUFFIX = "]]";
 
     /**
      * The name of log source data.
      */
-    protected static final String LOG_DATA_NAME = "logData";
+    private static final String LOG_DATA_NAME = "logData";
 
-    protected static final String ERROR_NAME = "errorName";
+    private static final String ERROR_NAME = "errorName";
 
     /**
      * The name of log level.
      */
-    protected static final String LOG_LEVEL_NAME = "logLevel";
+    private static final String LOG_LEVEL_NAME = "logLevel";
 
     /**
      * The name of logger.
      */
-    protected static final String LOGGER_NAME = "loggerName";
+    private static final String LOGGER_NAME = "loggerName";
 
     /**
      * The name of thread.
      */
-    protected static final String THREAD_NAME = "threadName";
-
-    /**
-     * The time of log.
-     */
-    protected static final String LOG_TIME = "logTime";
+    private static final String TRACE_ID_NAME = "_trace_id";
 
     /**
      * The name of log's _trace_id.
      */
-    protected static final String TRACE_ID_NAME = "_trace_id";
+    private static final String THREAD_NAME = "threadName";
 
-    protected static final String APP_ID_NAME = "appId";
+    /**
+     * The time of log.
+     */
+    private static final String LOG_TIME = "logTime";
 
-    protected static final String PUT_LOG_ASYNC_SWITCH = "putLogAsyncSwitch";
+    private static final String APP_ID_NAME = "appId";
+
+    private static final String PUT_LOG_ASYNC_SWITCH = "putLogAsyncSwitch";
 
 
     /**
@@ -93,35 +94,13 @@ public class LogAppendManager {
      */
     private static final Gson GSON = new Gson();
 
-    /**
-     * The namespace for logging error.
-     */
-    private static final String LOG_ERROR_NAMESPACE = "CloudWatchLogs";
-
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSZ");
 
-
-    private static Optional<Tracer> TRACER = Optional.empty();
-
-    /**
-     * Init telemetry hooks and longCounter.
-     */
-
-    private static void tryInitTelemetryTracer() {
-        if (!TRACER.isPresent()) {
-            try {
-                Mixer.telemetryHooksNullable().ifPresent(telemetryHooks -> {
-                    TRACER = Optional.ofNullable(telemetryHooks.buildTracer(LOG_ERROR_NAMESPACE).block());
-                });
-            } catch (Throwable ex) {
-                CustomLogManager.error("Fail to init telemetry tracer.", ex);
-            }
-
-        }
+    private LogAppendManager() {
     }
 
-    protected static Map<String, String> parseTags(String message, int tagsEndIndex) {
+    private static Map<String, String> parseTags(String message, int tagsEndIndex) {
         Map<String, String> tags = null;
         int tagStart = 2;
         while (tagStart < tagsEndIndex) {
@@ -143,7 +122,7 @@ public class LogAppendManager {
         return tags;
     }
 
-    protected static Map<String, String> appendMDCTags(Map<String, String> tags, Map<String, String> MDCTags) {
+    private static Map<String, String> appendMDCTags(Map<String, String> tags, Map<String, String> MDCTags) {
         if (MDCTags != null && !MDCTags.isEmpty()) {
             if (tags == null) {
                 return new HashMap<String, String>(MDCTags);
@@ -155,17 +134,21 @@ public class LogAppendManager {
         return tags;
     }
 
-    public static void appendLogs(String message, Map<String, String> MDCTags, String loggerName, String threadName,
-                                  String logLevel, long timestamp, Throwable throwable) {
-        Map<String, String> logMessageMap = parseLogs(message, MDCTags, logLevel, throwable);
-        logMessageMap.put(LOGGER_NAME, loggerName);
-        logMessageMap.put(THREAD_NAME, threadName);
-        logMessageMap.put(LOG_TIME, ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()).format(FORMATTER));
+    public static void appendLogs(CapaLogEvent event) {
+        Map<String, String> logMessageMap = parseLogs(event.getMessage(), event.getMDCTags(), event.getLogLevel(),
+                event.getThrowable());
+        logMessageMap.put(LOGGER_NAME, event.getLoggerName());
+        logMessageMap.put(THREAD_NAME, event.getThreadName());
+        logMessageMap.put(LOG_TIME,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.getTime()), ZoneId.systemDefault())
+                             .format(FORMATTER));
         // put logs to CloudWatchLogs
         if (!logMessageMap.isEmpty()) {
             String logMessage = GSON.toJson(logMessageMap);
-            if (!CapaComponentLogConfiguration.getInstance().containsKey(PUT_LOG_ASYNC_SWITCH)
-                    || Boolean.FALSE.toString().equalsIgnoreCase(CapaComponentLogConfiguration.getInstance().get(PUT_LOG_ASYNC_SWITCH))) {
+            Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
+            if (!configuration.isPresent()
+                    || !configuration.get().containsKey(PUT_LOG_ASYNC_SWITCH)
+                    || Boolean.FALSE.toString().equalsIgnoreCase(configuration.get().get(PUT_LOG_ASYNC_SWITCH))) {
                 System.out.println(logMessage);
             } else {
                 MessageConsumer consumer = MessageManager.getInstance().getConsumer();
@@ -213,16 +196,14 @@ public class LogAppendManager {
         return logMessageMap;
     }
 
-    protected static Map<String, String> getDefaultTags() {
+    private static Map<String, String> getDefaultTags() {
         Map<String, String> defaultTags = new HashMap<>();
         // traceId
         String traceId = CapaContext.getTraceId();
         if (StringUtils.isNotBlank(traceId) || TraceId.getInvalid().equals(traceId)) {
-            if (!TRACER.isPresent()) {
-                tryInitTelemetryTracer();
-            }
-            if (TRACER.isPresent()) {
-                Span span = TRACER.get().spanBuilder("CapaLog").startSpan();
+            Optional<Tracer> tracer = LogMetrics.getTracer();
+            if (tracer.isPresent()) {
+                Span span = tracer.get().spanBuilder("CapaLog").startSpan();
                 traceId = span.getSpanContext().getTraceId();
                 span.end();
             }
