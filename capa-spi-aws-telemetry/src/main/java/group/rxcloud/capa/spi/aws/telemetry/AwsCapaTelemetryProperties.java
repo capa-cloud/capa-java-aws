@@ -26,17 +26,33 @@ public interface AwsCapaTelemetryProperties {
     abstract class Settings {
 
         private static String awsTraceId = "capa-trace-id";
+        private static String defaultMetricNamespce;
+        private static String[] customizedNamespacePrefix;
+
 
         private static final String TELEMETRY_AWS_TRACE_ID_KEY = "TELEMETRY_AWS_TRACE_ID_KEY";
+        private static final String CUSTOMIZED_METRIC_NAMESPCE_KEY = "CUSTOMIZED_METRIC_NAMESPACE_PREFIX";
+        private static final String DEFAULT_METRIC_NAMESPCE = "DEFAULT_METRIC_NAMESPACE";
 
         static {
             Properties awsProperties = CapaProperties.COMPONENT_PROPERTIES_SUPPLIER.apply("telemetry-aws");
 
             awsTraceId = awsProperties.getProperty(TELEMETRY_AWS_TRACE_ID_KEY, awsTraceId);
+            customizedNamespacePrefix = awsProperties.getProperty(CUSTOMIZED_METRIC_NAMESPCE_KEY, "")
+            .split(",");
+            defaultMetricNamespce = awsProperties.getProperty(DEFAULT_METRIC_NAMESPCE, "");
         }
 
         public static String getTelemetryAwsTraceIdKey() {
             return awsTraceId;
+        }
+
+        public static String[] getCustomizedNamespacePrefix() {
+            return customizedNamespacePrefix;
+        }
+
+        public static String getDefaultMetricNamespce() {
+            return defaultMetricNamespce;
         }
 
         private Settings() {

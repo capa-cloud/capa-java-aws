@@ -48,7 +48,7 @@ public enum CapaLogLevel {
      * Convert logLevelArg to {@link CapaLogLevel}
      */
     public static Optional<CapaLogLevel> toCapaLogLevel(String logLevelArg) {
-        return Arrays.stream(CapaLogLevel.values())
+        return Arrays.stream(values())
                 .filter(logLevel -> logLevel.levelName.equalsIgnoreCase(logLevelArg))
                 .findAny();
     }

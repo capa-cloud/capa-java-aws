@@ -16,9 +16,9 @@
  */
 package group.rxcloud.capa.spi.aws.log.filter;
 
-import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.appender.CapaLogEvent;
 
 public interface LogOutputFilter {
 
-    boolean logCanOutput(CapaLogLevel level);
+    boolean logCanOutput(CapaLogEvent event);
 }

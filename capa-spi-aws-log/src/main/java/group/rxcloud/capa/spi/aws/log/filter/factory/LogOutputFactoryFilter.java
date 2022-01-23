@@ -16,23 +16,29 @@
  */
 package group.rxcloud.capa.spi.aws.log.filter.factory;
 
-import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
+import group.rxcloud.capa.spi.aws.log.appender.CapaLogEvent;
 import group.rxcloud.capa.spi.aws.log.filter.LogOutputFilter;
+import group.rxcloud.capa.spi.aws.log.filter.logoutput.LogOutputCountFilter;
 import group.rxcloud.capa.spi.aws.log.filter.logoutput.LogOutputLevelFilter;
 import group.rxcloud.capa.spi.aws.log.filter.logoutput.LogOutputSwitchFilter;
-import group.rxcloud.capa.spi.aws.log.filter.logoutput.LogOutputTimeFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class LogOutputFactoryFilter {
+public final class LogOutputFactoryFilter {
+
     private static final AtomicBoolean FILTER_INIT = new AtomicBoolean(false);
+
     private static final Logger log = LoggerFactory.getLogger(LogOutputFactoryFilter.class);
-    private static Optional<List<LogOutputFilter>> logOutputFilterList = Optional.empty();
+
+    private static volatile List<LogOutputFilter> logOutputFilterList = Collections.emptyList();
+
+    private LogOutputFactoryFilter() {
+    }
 
     /**
      * To judge whether the output can be output, several conditions need to be considered.
@@ -58,21 +64,19 @@ public class LogOutputFactoryFilter {
      * first set the error level to error or warn,
      * and then change it back to info to take effect
      *
-     * @param outputLogLevel
+     * @param event
      * @return
      */
-    public static boolean logCanOutput(CapaLogLevel outputLogLevel) {
-        if (getLogOutputFilterList().isPresent()) {
-            for (LogOutputFilter logOutputFilter : logOutputFilterList.get()) {
-                if (!logOutputFilter.logCanOutput(outputLogLevel)) {
-                    return false;
-                }
+    public static boolean logCanOutput(CapaLogEvent event) {
+        for (LogOutputFilter logOutputFilter : getLogOutputFilterList()) {
+            if (!logOutputFilter.logCanOutput(event)) {
+                return false;
             }
         }
         return true;
     }
 
-    private static Optional<List<LogOutputFilter>> getLogOutputFilterList() {
+    private static List<LogOutputFilter> getLogOutputFilterList() {
         if (FILTER_INIT.get()) {
             return logOutputFilterList;
         }
@@ -82,8 +86,8 @@ public class LogOutputFactoryFilter {
                     List<LogOutputFilter> logOutputFilters = new ArrayList<>();
                     logOutputFilters.add(new LogOutputSwitchFilter());
                     logOutputFilters.add(new LogOutputLevelFilter());
-                    logOutputFilters.add(new LogOutputTimeFilter());
-                    logOutputFilterList = Optional.of(logOutputFilters);
+                    logOutputFilters.add(new LogOutputCountFilter());
+                    logOutputFilterList = logOutputFilters;
                 } catch (Throwable e) {
                     log.error("Create logOutputFilter error.", e);
                 }
