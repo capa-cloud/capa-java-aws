@@ -42,11 +42,6 @@ public final class LogMetrics {
     private static final String LOG_ERROR_METRIC_NAME = "log_failure_count";
 
     /**
-     * The metric name for logging error.
-     */
-    private static final String LOG_ALERT_METRIC_NAME = "circuit_break_log_count";
-
-    /**
      * The attribute key for appender type.
      */
     private static final String APPENDER_KEY = "appender";
@@ -56,37 +51,12 @@ public final class LogMetrics {
      */
     private static final String ERROR_KEY = "error_name";
 
-    /**
-     * The attribute key for ERROR name.
-     */
-    private static final String LOGGER_NAME_KEY = "logger_name";
-
-
-    /**
-     * The attribute key for ERROR name.
-     */
-    private static final String ERROR_HASH_KEY = "error_hash";
-
-    private static final String SDK_INFO_KEY = "sdk_info";
-
-    private static final String SDK_VERSION_KEY = "sdk_version";
-
-    /**
-     * The attribute key for ERROR name.
-     */
-    private static final String LOG_LEVEL_KEY = "log_level";
-
     private static final AtomicBoolean METRIC_INIT = new AtomicBoolean(false);
 
     /**
      * Init an instance of {@link LongCounter}.
      */
     private static Optional<LongCounter> errorCounter = Optional.empty();
-
-    /**
-     * Init an instance of {@link LongCounter}.
-     */
-    private static Optional<LongCounter> alertCounter = Optional.empty();
 
     private static Optional<Tracer> tracer = Optional.empty();
 
@@ -111,35 +81,11 @@ public final class LogMetrics {
         }
     }
 
-    public static void alertErrorLogLimiting(String logLevel, String loggerName, String errorName, long hash, int count) {
-        try {
-            getAlertCounter().ifPresent(counter -> {
-                Attributes attributes = Attributes.builder()
-                                                  .put(ERROR_KEY, errorName)
-                                                  .put(LOGGER_NAME_KEY, loggerName)
-                                                  .put(LOG_LEVEL_KEY, logLevel)
-                                                  .put(ERROR_HASH_KEY, hash)
-                                                  .put(SDK_INFO_KEY, "capa_java_v1.11.13.4")
-                                                  .build();
-                counter.add(count, attributes);
-            });
-        } catch (Throwable throwable) {
-            // ignore any ERROR to keep the log function running.
-        }
-    }
-
     static Optional<LongCounter> getErrorCounter() {
         if (!METRIC_INIT.get()) {
             init();
         }
         return errorCounter;
-    }
-
-    static Optional<LongCounter> getAlertCounter() {
-        if (!METRIC_INIT.get()) {
-            init();
-        }
-        return alertCounter;
     }
 
     private static void init() {
@@ -149,7 +95,6 @@ public final class LogMetrics {
                     try {
                         Meter meter = telemetryHooks.buildMeter(LOG_NAMESPACE).block();
                         errorCounter = Optional.ofNullable(meter.counterBuilder(LOG_ERROR_METRIC_NAME).build());
-                        alertCounter = Optional.ofNullable(meter.counterBuilder(LOG_ALERT_METRIC_NAME).build());
                         tracer = Optional.ofNullable(telemetryHooks.buildTracer(LOG_NAMESPACE).block());
                     } catch (Throwable ex) {
                         CustomLogManager.warn("Fail to init telemetry components.", ex);

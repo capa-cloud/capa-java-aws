@@ -90,7 +90,7 @@ public class MessageSender extends Thread {
         AtomicInteger ruleCount = new AtomicInteger(DEFAULT_MAX_RULE_COUNT);
         CapaComponentLogConfiguration.getInstanceOpt().ifPresent(configuration -> {
             if (configuration.containsKey(LOG_STREAM_COUNT_NAME)) {
-                ruleCount.set(Integer.parseInt(LOG_STREAM_COUNT_NAME));
+                ruleCount.set(Integer.parseInt(configuration.get(LOG_STREAM_COUNT_NAME)));
             }
         });
 
