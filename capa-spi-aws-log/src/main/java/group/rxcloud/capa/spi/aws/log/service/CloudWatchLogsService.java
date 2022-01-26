@@ -280,7 +280,7 @@ public class CloudWatchLogsService {
         int logStreamCount = DEFAULT_MAX_LOG_STREAM_COUNT;
         Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
         if (configuration.isPresent() && configuration.get().containsKey(LOG_STREAM_COUNT_NAME)) {
-            logStreamCount = Integer.parseInt(LOG_STREAM_COUNT_NAME);
+            logStreamCount = Integer.parseInt(configuration.get().get(LOG_STREAM_COUNT_NAME));
         }
 
         for (int i = 0; i < logStreamCount; i++) {

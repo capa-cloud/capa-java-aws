@@ -17,8 +17,6 @@
 package group.rxcloud.capa.spi.aws.log.manager;
 
 import com.google.gson.Gson;
-import group.rxcloud.capa.addons.foundation.CapaFoundation;
-import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.spi.aws.log.appender.CapaLogEvent;
 import group.rxcloud.capa.spi.aws.log.configuration.CapaComponentLogConfiguration;
@@ -36,38 +34,27 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public final class LogAppendManager {
 
     /**
-     * Tag identifier prefix.
-     */
-    private static final String TAG_PREFIX = "[[";
-
-    /**
-     * Tag identifier suffix.
-     */
-    private static final String TAG_SUFFIX = "]]";
-
-    /**
      * The name of log source data.
      */
-    private static final String LOG_DATA_NAME = "logData";
+    private static final String LOG_DATA_NAME = "_log_data";
 
-    private static final String ERROR_NAME = "errorName";
+    private static final String ERROR_NAME = "_error_name";
 
     /**
      * The name of log level.
      */
-    private static final String LOG_LEVEL_NAME = "logLevel";
+    private static final String LOG_LEVEL_NAME = "_log_level";
 
     /**
      * The name of logger.
      */
-    private static final String LOGGER_NAME = "loggerName";
+    private static final String LOGGER_NAME = "_logger_name";
 
     /**
      * The name of thread.
@@ -77,17 +64,24 @@ public final class LogAppendManager {
     /**
      * The name of log's _trace_id.
      */
-    private static final String THREAD_NAME = "threadName";
+    private static final String THREAD_NAME = "_thread_name";
+
+    /**
+     * closure log tag.
+     */
+    private static final String LOG_EVENT_NAME = "_log_event";
+
+    /**
+     * closure log tag.
+     */
+    private static final String THROTTLE = "throttle";
 
     /**
      * The time of log.
      */
-    private static final String LOG_TIME = "logTime";
-
-    private static final String APP_ID_NAME = "appId";
+    private static final String LOG_TIME = "_log_time";
 
     private static final String PUT_LOG_ASYNC_SWITCH = "putLogAsyncSwitch";
-
 
     /**
      * Init a {@link Gson} instance.
@@ -100,104 +94,27 @@ public final class LogAppendManager {
     private LogAppendManager() {
     }
 
-    private static Map<String, String> parseTags(String message, int tagsEndIndex) {
-        Map<String, String> tags = null;
-        int tagStart = 2;
-        while (tagStart < tagsEndIndex) {
-            int tagEnd = message.indexOf(',', tagStart);
-            if (tagEnd < 0 || tagEnd > tagsEndIndex) {
-                tagEnd = tagsEndIndex;
-            }
-            int equalIndex = message.indexOf('=', tagStart);
-            if (equalIndex > tagStart && equalIndex < tagEnd - 1) {
-                String key = message.substring(tagStart, equalIndex);
-                String value = message.substring(equalIndex + 1, tagEnd);
-                if (tags == null) {
-                    tags = new HashMap<>();
-                }
-                tags.put(key, value);
-            }
-            tagStart = tagEnd + 1;
-        }
-        return tags;
-    }
-
-    private static Map<String, String> appendMDCTags(Map<String, String> tags, Map<String, String> MDCTags) {
-        if (MDCTags != null && !MDCTags.isEmpty()) {
-            if (tags == null) {
-                return new HashMap<String, String>(MDCTags);
-            } else {
-                tags.putAll(MDCTags);
-                return tags;
-            }
-        }
-        return tags;
-    }
-
     public static void appendLogs(CapaLogEvent event) {
-        Map<String, String> logMessageMap = parseLogs(event.getMessage(), event.getMDCTags(), event.getLogLevel(),
-                event.getThrowable());
-        logMessageMap.put(LOGGER_NAME, event.getLoggerName());
-        logMessageMap.put(THREAD_NAME, event.getThreadName());
-        logMessageMap.put(LOG_TIME,
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.getTime()), ZoneId.systemDefault())
-                             .format(FORMATTER));
+        String logMessage = buildLog(event);
+        Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
+        if (!configuration.isPresent()
+                || !configuration.get().containsKey(PUT_LOG_ASYNC_SWITCH)
+                || Boolean.FALSE.toString().equalsIgnoreCase(configuration.get().get(PUT_LOG_ASYNC_SWITCH))) {
+            System.out.println(logMessage);
+        } else {
+            MessageConsumer consumer = MessageManager.getInstance().getConsumer();
+            consumer.processLogEvent(logMessage);
+        }
+    }
+
+    public static String buildLog(CapaLogEvent event) {
+        Map<String, String> tags = event.getTags();
+        appendDefaultTags(event, tags);
         // put logs to CloudWatchLogs
-        if (!logMessageMap.isEmpty()) {
-            String logMessage = GSON.toJson(logMessageMap);
-            Optional<CapaComponentLogConfiguration> configuration = CapaComponentLogConfiguration.getInstanceOpt();
-            if (!configuration.isPresent()
-                    || !configuration.get().containsKey(PUT_LOG_ASYNC_SWITCH)
-                    || Boolean.FALSE.toString().equalsIgnoreCase(configuration.get().get(PUT_LOG_ASYNC_SWITCH))) {
-                System.out.println(logMessage);
-            } else {
-                MessageConsumer consumer = MessageManager.getInstance().getConsumer();
-                consumer.processLogEvent(logMessage);
-            }
-        }
+        return GSON.toJson(tags);
     }
 
-    public static Map<String, String> parseLogs(String message, Map<String, String> MDCTags, String logLevel,
-                                                Throwable throwable) {
-        if (StringUtils.isBlank(message)) {
-            message = "";
-        }
-        Map<String, String> tags = new HashMap<>();
-        if (message.startsWith(TAG_PREFIX)) {
-            int tagsEndIndex = message.indexOf(TAG_SUFFIX);
-            if (tagsEndIndex > 0) {
-                tags = parseTags(message, tagsEndIndex);
-                if (tags != null) {
-                    message = message.substring(tagsEndIndex + 2);
-                }
-            }
-        }
-        tags = appendMDCTags(tags, MDCTags);
-        Map<String, String> logMessageMap = new HashMap<>();
-        logMessageMap.put(LOG_LEVEL_NAME, logLevel);
-        if (throwable != null) {
-            StringWriter sw = new StringWriter(200 * 1024);
-            PrintWriter pw = new PrintWriter(sw);
-            pw.print(message);
-            throwable.printStackTrace(pw);
-            message = sw.toString();
-            logMessageMap.put(ERROR_NAME, throwable.getClass().getName());
-        }
-        if (StringUtils.isNotBlank(message)) {
-            logMessageMap.put(LOG_DATA_NAME, message);
-        }
-        Map<String, String> defaultTags = getDefaultTags();
-        if (defaultTags != null && !defaultTags.isEmpty()) {
-            logMessageMap.putAll(defaultTags);
-        }
-        if (tags != null && !tags.isEmpty()) {
-            logMessageMap.putAll(tags);
-        }
-        return logMessageMap;
-    }
-
-    private static Map<String, String> getDefaultTags() {
-        Map<String, String> defaultTags = new HashMap<>();
+    private static void appendDefaultTags(CapaLogEvent event, Map<String, String> tags) {
         // traceId
         String traceId = CapaContext.getTraceId();
         if (StringUtils.isNotBlank(traceId) || TraceId.getInvalid().equals(traceId)) {
@@ -209,14 +126,32 @@ public final class LogAppendManager {
             }
         }
         if (StringUtils.isNotBlank(traceId)) {
-            defaultTags.put(TRACE_ID_NAME, traceId);
+            tags.put(TRACE_ID_NAME, traceId);
         }
 
-        // appId
-        String appId = CapaFoundation.getAppId(FoundationType.TRIP);
-        if (StringUtils.isNotBlank(appId)) {
-            defaultTags.put(APP_ID_NAME, appId);
+        String message = event.getMessage();
+        Throwable throwable = event.getThrowable();
+        if (throwable != null) {
+            StringWriter sw = new StringWriter(200 * 1024);
+            PrintWriter pw = new PrintWriter(sw);
+            pw.print(message);
+            throwable.printStackTrace(pw);
+            message = sw.toString();
+            tags.put(ERROR_NAME, throwable.getClass().getName());
         }
-        return defaultTags;
+
+        if (StringUtils.isNotBlank(message)) {
+            tags.put(LOG_DATA_NAME, message);
+        }
+
+        tags.put(LOGGER_NAME, event.getLoggerName());
+        tags.put(THREAD_NAME, event.getThreadName());
+        tags.put(LOG_LEVEL_NAME, event.getLogLevel());
+        tags.put(LOG_TIME,
+                ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.getTime()), ZoneId.systemDefault())
+                             .format(FORMATTER));
+        if (event.isThrottle()) {
+            tags.put(LOG_EVENT_NAME, THROTTLE);
+        }
     }
 }

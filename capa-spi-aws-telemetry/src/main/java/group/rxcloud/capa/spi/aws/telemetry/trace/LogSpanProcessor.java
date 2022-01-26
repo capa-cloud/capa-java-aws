@@ -58,7 +58,7 @@ public class LogSpanProcessor implements SpanProcessor {
         appendTag(builder, "_span_latency_nanos", String.valueOf(spanData.getEndEpochNanos() - spanData.getStartEpochNanos()));
         if (!spanData.getAttributes().isEmpty()) {
             spanData.getAttributes().forEach((k, v) -> {
-                appendTag(builder, "attr." + k.getKey(), String.valueOf(v));
+                appendTag(builder, "_attr." + k.getKey(), String.valueOf(v));
             });
         }
         builder.append("]]");

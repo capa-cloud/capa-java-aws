@@ -21,10 +21,10 @@ import group.rxcloud.capa.spi.aws.log.configuration.LogConfig;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
 import group.rxcloud.capa.spi.aws.log.filter.LogOutputFilter;
 import group.rxcloud.capa.spi.aws.log.manager.CustomLogManager;
-import group.rxcloud.capa.spi.aws.log.service.LogMetrics;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,15 +36,10 @@ public class LogOutputCountFilter implements LogOutputFilter {
 
     @Override
     public boolean logCanOutput(CapaLogEvent event) {
-        return LogLimiter
-                .logsCountLimit(event.getCapaLogLevel().orElse(null), event.getLoggerName(), event.getMessage(),
-                        event.getThrowable());
+        return LogLimiter.logsCountLimit(event);
     }
 
-
     static final class LogLimiter {
-
-        private static final String UNDEFINED = "UNDEFINED";
 
         private static final ConcurrentHashMap<Long, OutputCount> COUNTER_MAP = new ConcurrentHashMap<>();
 
@@ -77,13 +72,18 @@ public class LogOutputCountFilter implements LogOutputFilter {
             return outputCount.alertTime() > alertMillis || outputCount.countTime() > countMillis;
         }
 
-        public static boolean logsCountLimit(CapaLogLevel level, String loggerName, String message, Throwable ex) {
+        public static boolean logsCountLimit(CapaLogEvent event) {
+            CapaLogLevel level = event.getCapaLogLevel().orElse(null);
+            String loggerName = event.getLoggerName();
+            String message = event.getMessage();
+            Throwable ex = event.getThrowable();
+            Map<String, String> tags = event.getTags();
             CapaLogLevel restrictLevel = LogConfig.LevelConfig.ALERT_LOG_LEVEL.get();
             if (level.getLevel() < restrictLevel.getLevel()) {
                 return true;
             }
 
-            long key = encode(loggerName, message, ex);
+            long key = encode(loggerName, message, tags, ex);
             OutputCount outputCount = COUNTER_MAP.computeIfAbsent(key, k -> {
                 KEYS.offer(k);
                 return new OutputCount();
@@ -100,18 +100,27 @@ public class LogOutputCountFilter implements LogOutputFilter {
                 return true;
             }
 
-            // need alert
-            int alertCount = outputCount.startAlert() ? count : 1;
-            LogMetrics.alertErrorLogLimiting(level.getLevelName(), loggerName,
-                    ex == null ? UNDEFINED : ex.getClass().getCanonicalName(), key, alertCount);
+            // alert
+            if (outputCount.startAlert()) {
+                event.setThrottle(true);
+                return true;
+            }
+
             return false;
         }
 
-        private static long encode(String loggerName, String message, Throwable ex) {
+
+        private static long encode(String loggerName, String message, Map<String, String> tags, Throwable ex) {
             StringWriter stringWriter = new StringWriter(256);
             PrintWriter writer = new PrintWriter(stringWriter);
             writer.print(loggerName);
             writer.print(message);
+            if (tags != null && !tags.isEmpty()) {
+                tags.forEach((k, v) -> {
+                    writer.print(k);
+                    writer.print(v);
+                });
+            }
             if (ex != null) {
                 writer.print(ex.getMessage());
                 ex.printStackTrace(writer);

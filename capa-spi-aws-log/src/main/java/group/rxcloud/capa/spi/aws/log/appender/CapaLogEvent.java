@@ -32,6 +32,16 @@ import java.util.Optional;
  */
 public class CapaLogEvent {
 
+    /**
+     * Tag identifier prefix.
+     */
+    private static final String TAG_PREFIX = "[[";
+
+    /**
+     * Tag identifier suffix.
+     */
+    private static final String TAG_SUFFIX = "]]";
+
     private Optional<CapaLogLevel> capaLogLevel;
 
     private String message;
@@ -44,34 +54,98 @@ public class CapaLogEvent {
 
     private Throwable throwable;
 
-    private Map<String, String> MDCTags;
+    private Map<String, String> tags;
+
+    private boolean throttle;
 
     public CapaLogEvent(LogEvent event) {
         capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().name());
-        message = event.getMessage().getFormattedMessage();
+        String originMessage = event.getMessage().getFormattedMessage();
+        message = deleteTags(originMessage);
         loggerName = event.getLoggerName();
         throwable = event.getThrown();
         threadName = event.getThreadName();
         time = event.getTimeMillis();
         ReadOnlyStringMap contextData = event.getContextData();
-        MDCTags = contextData == null ? new HashMap<>() : contextData.toMap();
+        Map<String, String> MDCTags = contextData == null ? null : contextData.toMap();
+        tags = mergeTags(originMessage, MDCTags);
+    }
+
+    public CapaLogEvent(String loggerName, CapaLogLevel level, String message, Throwable throwable) {
+        capaLogLevel = Optional.ofNullable(level);
+        this.message = deleteTags(message);
+        this.loggerName = loggerName;
+        this.throwable = throwable;
+        threadName = Thread.currentThread().getName();
+        time = System.currentTimeMillis();
+        tags = mergeTags(message, null);
     }
 
     public CapaLogEvent(ILoggingEvent event) {
         capaLogLevel = CapaLogLevel.toCapaLogLevel(event.getLevel().levelStr);
         loggerName = event.getLoggerName();
-        message = event.getFormattedMessage();
+        String originMessage = event.getFormattedMessage();
+        message = deleteTags(originMessage);
         ThrowableProxy throwableProxy = (ThrowableProxy) event.getThrowableProxy();
         if (throwableProxy != null) {
             throwable = throwableProxy.getThrowable();
         }
         threadName = event.getThreadName();
         time = event.getTimeStamp();
-        MDCTags = event.getMDCPropertyMap();
+        tags = mergeTags(originMessage, event.getMDCPropertyMap());
     }
 
-    public Map<String, String> getMDCTags() {
-        return MDCTags;
+    private static String deleteTags(String message) {
+        if (message.startsWith(TAG_PREFIX)) {
+            int tagsEndIndex = message.indexOf(TAG_SUFFIX);
+            if (tagsEndIndex > 0) {
+                return message.substring(tagsEndIndex + 2);
+            }
+        }
+        return message;
+    }
+
+    private static Map<String, String> mergeTags(String message, Map<String, String> MDCTags) {
+        Map<String, String> tags = new HashMap<>();
+        if (message.startsWith(TAG_PREFIX)) {
+            int tagsEndIndex = message.indexOf(TAG_SUFFIX);
+            if (tagsEndIndex > 0) {
+                parseTags(message, tagsEndIndex, tags);
+            }
+        }
+        if (MDCTags != null && !MDCTags.isEmpty()) {
+            tags.putAll(MDCTags);
+        }
+        return tags;
+    }
+
+    private static void parseTags(String message, int tagsEndIndex, Map<String, String> tags) {
+        int tagStart = 2;
+        while (tagStart < tagsEndIndex) {
+            int tagEnd = message.indexOf(',', tagStart);
+            if (tagEnd < 0 || tagEnd > tagsEndIndex) {
+                tagEnd = tagsEndIndex;
+            }
+            int equalIndex = message.indexOf('=', tagStart);
+            if (equalIndex > tagStart && equalIndex < tagEnd - 1) {
+                String key = message.substring(tagStart, equalIndex);
+                String value = message.substring(equalIndex + 1, tagEnd);
+                tags.put(key, value);
+            }
+            tagStart = tagEnd + 1;
+        }
+    }
+
+    public boolean isThrottle() {
+        return throttle;
+    }
+
+    public void setThrottle(boolean throttle) {
+        this.throttle = throttle;
+    }
+
+    public Map<String, String> getTags() {
+        return tags;
     }
 
     public String getThreadName() {
