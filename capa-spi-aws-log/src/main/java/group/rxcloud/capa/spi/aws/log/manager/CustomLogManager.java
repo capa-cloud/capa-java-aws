@@ -16,64 +16,22 @@
  */
 package group.rxcloud.capa.spi.aws.log.manager;
 
-import com.google.gson.Gson;
+import group.rxcloud.capa.spi.aws.log.appender.CapaLogEvent;
 import group.rxcloud.capa.spi.aws.log.enums.CapaLogLevel;
-
-import java.util.Map;
 
 // TODO upgrade
 public class CustomLogManager {
 
-    private static final Gson GSON = new Gson();
-
-    public static void trace(String message) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.TRACE.name(), null);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void trace(String message, Throwable throwable) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.TRACE.name(), throwable);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void debug(String message) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.DEBUG.name(), null);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void debug(String message, Throwable throwable) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.DEBUG.name(), throwable);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void info(String message) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.INFO.name(), null);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void info(String message, Throwable throwable) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.INFO.name(), throwable);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void warn(String message) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.WARN.name(), null);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
     public static void warn(String message, Throwable throwable) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.WARN.name(), throwable);
-        System.out.println(GSON.toJson(logMessages));
-    }
-
-    public static void error(String message) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.ERROR.name(), null);
-        System.out.println(GSON.toJson(logMessages));
+        CapaLogEvent event = new CapaLogEvent(CustomLogManager.class.getName(), CapaLogLevel.WARN, message, throwable);
+        String log = LogAppendManager.buildLog(event);
+        System.out.println(log);
     }
 
     public static void error(String message, Throwable throwable) {
-        Map<String, String> logMessages = LogAppendManager.parseLogs(message, null, CapaLogLevel.ERROR.name(), throwable);
-        System.out.println(GSON.toJson(logMessages));
+        CapaLogEvent event = new CapaLogEvent(CustomLogManager.class.getName(), CapaLogLevel.ERROR, message, throwable);
+        String log = LogAppendManager.buildLog(event);
+        System.out.println(log);
     }
 }
 

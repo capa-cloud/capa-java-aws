@@ -20,6 +20,7 @@ package group.rxcloud.capa.spi.aws.telemetry.metrics;
 import group.rxcloud.capa.addons.foundation.CapaFoundation;
 import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
+import group.rxcloud.capa.spi.aws.telemetry.AwsCapaTelemetryProperties;
 import group.rxcloud.capa.spi.telemetry.CapaMetricsExporterSpi;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.Clock;
@@ -71,17 +72,19 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static final MetricsCache METRICS_CACHE = new MetricsCache();
 
-    private static final String APPID = "AppId";
+    private static final String APPID = "app_id";
 
-    private static final String ENV = "Env";
+    private static final String ENV = "env";
 
     private static final String UNKNOWN = "UNKNOWN";
+
+    private static final String METER = "meter";
 
     public CloudWatchMetricsExporter(Supplier<SamplerConfig> samplerConfig) {
         super(samplerConfig);
     }
 
-    private static String getNamespace(MetricData data) {
+    private static String getMeterName(MetricData data) {
         return data.getInstrumentationLibraryInfo().getName();
     }
 
@@ -107,7 +110,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         }
     }
 
-    static List<Dimension> buildDimension(Attributes attributes) {
+    static List<Dimension> buildDimension(String namespace, String custimizedMeterName, Attributes attributes) {
         List<Dimension> dimensions = new ArrayList<>();
         dimensions.add(Dimension.builder()
                                 .name(APPID)
@@ -117,6 +120,12 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                                 .name(ENV)
                                 .value(getEnv())
                                 .build());
+        if (custimizedMeterName != null && !custimizedMeterName.equals(namespace)) {
+            dimensions.add(Dimension.builder()
+                                    .name(METER)
+                                    .value(custimizedMeterName)
+                                    .build());
+        }
         if (attributes.isEmpty()) {
             return dimensions;
         }
@@ -140,64 +149,87 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
     }
 
     static Map<String, List<CollectedMetrics>> collectedMetricsByNamespace(Collection<MetricData> metricData) {
-        Map<String, CollectedMetrics> metricsMap = new HashMap<>();
+        Map<Long, CollectedMetrics> metricsMap = new HashMap<>();
         metricData.forEach(m -> {
-            String namespace = getNamespace(m);
+            String meterName = getMeterName(m);
             String metricName = getMetricName(m);
             MetricDataType type = m.getType();
             if (type == MetricDataType.LONG_SUM) {
-                processLongPoint(namespace, metricName, metricsMap, m.getLongSumData().getPoints());
+                processLongPoint(meterName, metricName, metricsMap, m.getLongSumData().getPoints());
             } else if (type == MetricDataType.LONG_GAUGE) {
-                processLongPoint(namespace, metricName, metricsMap, m.getLongGaugeData().getPoints());
+                processLongPoint(meterName, metricName, metricsMap, m.getLongGaugeData().getPoints());
             } else if (type == MetricDataType.DOUBLE_SUM) {
-                processDoublePoint(namespace, metricName, metricsMap, m.getDoubleSumData().getPoints());
+                processDoublePoint(meterName, metricName, metricsMap, m.getDoubleSumData().getPoints());
             } else if (type == MetricDataType.DOUBLE_GAUGE) {
-                processDoublePoint(namespace, metricName, metricsMap, m.getDoubleGaugeData().getPoints());
+                processDoublePoint(meterName, metricName, metricsMap, m.getDoubleGaugeData().getPoints());
             } else if (type == MetricDataType.SUMMARY) {
-                processDoubleSummary(namespace, metricName, metricsMap, m.getDoubleSummaryData().getPoints());
+                processDoubleSummary(meterName, metricName, metricsMap, m.getDoubleSummaryData().getPoints());
             }
         });
 
         Map<String, List<CollectedMetrics>> metricsMapGroupByNamespace = new HashMap<>();
         metricsMap.values()
-                  .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.nameSpace, k -> new ArrayList<>()).add(m));
+                  .forEach(m -> metricsMapGroupByNamespace.computeIfAbsent(m.namespace, k -> new ArrayList<>()).add(m));
         return metricsMapGroupByNamespace;
     }
 
-    static void recordHistogram(String namespace, String metricName, Attributes attributes, double data) {
-        METRICS_CACHE.recordHistogram(namespace, metricName, attributes, data);
+    static void recordHistogram(String meterName, String metricName, Attributes attributes, double data) {
+        METRICS_CACHE.recordHistogram(findNamespace(meterName), meterName, metricName, attributes, data);
     }
 
-    static void recordHistogram(String namespace, String metricName, Attributes attributes, long data) {
-        METRICS_CACHE.recordHistogram(namespace, metricName, attributes, data);
+    static void recordHistogram(String meterName, String metricName, Attributes attributes, long data) {
+        METRICS_CACHE.recordHistogram(findNamespace(meterName), meterName, metricName, attributes, data);
     }
 
-    private static void processLongPoint(String namespace, String metricName, Map<String, CollectedMetrics> metricsMap,
+    private static void processLongPoint(String meterName, String metricName, Map<Long, CollectedMetrics> metricsMap,
                                          Collection<LongPointData> data) {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
+            String namespace = findNamespace(meterName);
             metricsMap.computeIfAbsent(
-                    getKey(namespace, metricName, millis, p.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+                    getKey(namespace, meterName, metricName, millis, p.getAttributes()),
+                    k -> new CollectedMetrics(namespace, meterName, metricName, millis,
+                            buildDimension(namespace, meterName, p.getAttributes())))
                       .addPoint(BigDecimal.valueOf(p.getValue()).doubleValue());
         });
     }
 
-    private static void processDoublePoint(String namespace, String metricName,
-                                           Map<String, CollectedMetrics> metricsMap, Collection<DoublePointData> data) {
+    private static String findNamespace(String meterName) {
+        String[] prefixList = AwsCapaTelemetryProperties.Settings.getCustomizedNamespacePrefix();
+        String namespace = meterName;
+        for (String prefix : prefixList) {
+            if (!prefix.isEmpty() && namespace.startsWith(prefix)) {
+                return namespace;
+            }
+        }
+
+        // use global namespace if it was set.
+        String global = AwsCapaTelemetryProperties.Settings.getDefaultMetricNamespce();
+        if (global != null && !global.isEmpty()) {
+            namespace = global;
+        }
+        
+        return namespace;
+    }
+
+    private static void processDoublePoint(String meterName, String metricName,
+                                           Map<Long, CollectedMetrics> metricsMap, Collection<DoublePointData> data) {
         data.forEach(p -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(p.getEpochNanos());
-            metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, p.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(p.getAttributes())))
+            String namespace = findNamespace(meterName);
+            metricsMap.computeIfAbsent(getKey(namespace, meterName, metricName, millis, p.getAttributes()),
+                    k -> new CollectedMetrics(namespace, meterName, metricName, millis,
+                            buildDimension(namespace, meterName, p.getAttributes())))
                       .addPoint(p.getValue());
         });
     }
 
-    private static void processDoubleSummary(String namespace, String metricName,
-                                             Map<String, CollectedMetrics> metricsMap,
+    private static void processDoubleSummary(String meterName, String metricName,
+                                             Map<Long, CollectedMetrics> metricsMap,
                                              Collection<DoubleSummaryPointData> data) {
         data.forEach(d -> {
             long millis = TimeUnit.NANOSECONDS.toMillis(d.getEpochNanos());
+            String namespace = findNamespace(meterName);
             StatisticSet.Builder setBuilder = StatisticSet.builder()
                                                           .sum(d.getSum())
                                                           .sampleCount(BigDecimal.valueOf(d.getCount()).doubleValue());
@@ -210,8 +242,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                     }
                 });
             }
-            metricsMap.computeIfAbsent(getKey(namespace, metricName, millis, d.getAttributes()),
-                    k -> new CollectedMetrics(namespace, metricName, millis, buildDimension(d.getAttributes())))
+            metricsMap.computeIfAbsent(getKey(namespace, meterName, metricName, millis, d.getAttributes()),
+                    k -> new CollectedMetrics(namespace, meterName, metricName, millis,
+                            buildDimension(namespace, meterName, d.getAttributes())))
                       .setStatisticSet(setBuilder.build());
         });
     }
@@ -229,8 +262,9 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         }
     }
 
-    private static String getKey(String nameSpace, String metricName, long epocheMillis, Attributes attributes) {
-        StringBuilder builder = new StringBuilder(nameSpace + ':' + metricName + ':' + epocheMillis);
+    private static long getKey(String namespace, String meterName, String metricName, long epocheMillis,
+                               Attributes attributes) {
+        StringBuilder builder = new StringBuilder(namespace + ':' + meterName + ':' + metricName + ':' + epocheMillis);
         if (attributes != null && !attributes.isEmpty()) {
             builder.append(':');
             List<String> attrs = new ArrayList<>();
@@ -240,7 +274,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
             attrs.sort(String::compareTo);
             attrs.forEach(s -> builder.append(s).append('&'));
         }
-        return builder.toString();
+        return builder.toString().hashCode();
     }
 
     private static MetricDatum build(CollectedMetrics c, List<Double> values, List<Double> counts) {
@@ -326,7 +360,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
      */
     static final class MetricsCache {
 
-        private final Map<String, CollectedMetrics>[] histogramCache = new ConcurrentHashMap[]{
+        private final Map<Long, CollectedMetrics>[] histogramCache = new ConcurrentHashMap[]{
                 new ConcurrentHashMap<>(), new ConcurrentHashMap<>()};
 
         private final AtomicInteger index = new AtomicInteger();
@@ -337,7 +371,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         MetricsCache() {
         }
 
-        <T> void recordHistogram(String namespace, String metricName, Attributes attributes, T data) {
+        <T> void recordHistogram(String namespace, String meterName, String metricName, Attributes attributes, T data) {
             Double value = null;
             if (data instanceof Double) {
                 value = (Double) data;
@@ -359,10 +393,12 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
             try {
                 long millis = 0L;
-                histogramCache[currentIndex].computeIfAbsent(getKey(namespace, metricName, millis, attributes),
-                        k ->
-                                new CollectedMetrics(namespace, metricName, millis, buildDimension(attributes)))
-                                            .addPoint(value);
+                histogramCache[currentIndex]
+                        .computeIfAbsent(getKey(namespace, meterName, metricName, millis, attributes),
+                                k ->
+                                        new CollectedMetrics(namespace, meterName, metricName, millis,
+                                                buildDimension(namespace, meterName, attributes)))
+                        .addPoint(value);
             } finally {
                 readLock.unlock();
             }
@@ -372,7 +408,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
         void collectAllByNamespace(Map<String, List<CollectedMetrics>> result) {
             synchronized (index) {
                 int currentIndex = changeCache();
-                Map<String, CollectedMetrics> cache = histogramCache[currentIndex];
+                Map<Long, CollectedMetrics> cache = histogramCache[currentIndex];
                 if (!cache.isEmpty()) {
                     Instant instant = Instant.ofEpochMilli(TimeUnit.NANOSECONDS.toMillis(Clock.getDefault().now()));
 
@@ -382,7 +418,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
                     try {
                         cache.values().forEach(metrics -> {
                             metrics.instant = instant;
-                            result.computeIfAbsent(metrics.nameSpace, key -> new ArrayList<>()).add(metrics);
+                            result.computeIfAbsent(metrics.namespace, key -> new ArrayList<>()).add(metrics);
                         });
                         cache.clear();
                     } finally {
