@@ -35,11 +35,6 @@
         </dependency>
 
         <dependency>
-            <groupId>group.rxcloud</groupId>
-            <artifactId>capa-serializer</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>appmesh</artifactId>
         </dependency>

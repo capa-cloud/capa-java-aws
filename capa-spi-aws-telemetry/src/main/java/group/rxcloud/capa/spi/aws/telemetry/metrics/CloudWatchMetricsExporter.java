@@ -17,9 +17,8 @@
 package group.rxcloud.capa.spi.aws.telemetry.metrics;
 
 
-import group.rxcloud.capa.addons.foundation.CapaFoundation;
-import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
+import group.rxcloud.capa.infrastructure.CapaEnvironment;
 import group.rxcloud.capa.spi.aws.telemetry.AwsCapaTelemetryProperties;
 import group.rxcloud.capa.spi.telemetry.CapaMetricsExporterSpi;
 import io.opentelemetry.api.common.Attributes;
@@ -94,7 +93,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static String getAppId() {
         try {
-            String appId = CapaFoundation.getAppId(FoundationType.TRIP);
+            String appId = "TODO";
             return appId == null ? UNKNOWN : appId;
         } catch (Throwable e) {
             return UNKNOWN;
@@ -103,7 +102,7 @@ public class CloudWatchMetricsExporter extends CapaMetricsExporterSpi {
 
     private static String getEnv() {
         try {
-            String env = CapaFoundation.getEnv(FoundationType.TRIP);
+            String env = CapaEnvironment.Provider.getInstance().getDeployEnv();
             return env == null ? UNKNOWN : env;
         } catch (Throwable e) {
             return UNKNOWN;

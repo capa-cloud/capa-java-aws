@@ -16,8 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.infrastructure;
 
-import group.rxcloud.capa.addons.foundation.CapaFoundation;
-import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.infrastructure.CapaEnvironment;
 import group.rxcloud.capa.infrastructure.CapaProperties;
 
@@ -41,8 +39,8 @@ public class AwsCapaEnvironment implements CapaEnvironment {
 
     @Override
     public String getDeployEnv() {
-        // FIXME: 2021/12/15 use trip logic currently
-        return CapaFoundation.getEnv(FoundationType.TRIP);
+        String envKey = Settings.getEnvKey();
+        return System.getProperty(envKey);
     }
 
     abstract static class Settings {

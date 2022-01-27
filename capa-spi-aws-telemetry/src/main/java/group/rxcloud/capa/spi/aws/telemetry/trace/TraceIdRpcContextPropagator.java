@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import group.rxcloud.capa.addons.id.generator.TripTraceIdGeneratePolicy;
 import group.rxcloud.capa.component.telemetry.SamplerConfig;
 import group.rxcloud.capa.component.telemetry.context.CapaContext;
 import group.rxcloud.capa.spi.aws.telemetry.AwsCapaTelemetryProperties;
@@ -33,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Context Propagator for trip trace id.
@@ -73,7 +73,7 @@ public class TraceIdRpcContextPropagator implements TextMapPropagator {
 
             SpanContext spanContext = ImmutableSpanContext.create(
                     traceId,
-                    TripTraceIdGeneratePolicy.generate(),
+                    UUID.randomUUID().toString(),
                     sampled ? TraceFlags.getSampled()
                             : TraceFlags.getDefault(),
                     currentExtracted.getTraceState(),

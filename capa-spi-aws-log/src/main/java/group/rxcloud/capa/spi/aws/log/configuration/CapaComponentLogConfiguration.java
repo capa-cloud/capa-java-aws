@@ -16,7 +16,6 @@
  */
 package group.rxcloud.capa.spi.aws.log.configuration;
 
-import com.google.common.collect.Lists;
 import group.rxcloud.capa.component.CapaLogProperties;
 import group.rxcloud.capa.infrastructure.hook.ConfigurationHooks;
 import group.rxcloud.capa.infrastructure.hook.Mixer;
@@ -60,8 +59,9 @@ public class CapaComponentLogConfiguration {
         callbackList.add(new EffectiveTimeChecker());
         Mixer.configurationHooksNullable().ifPresent(hooks -> {
             // subscribe capa-compoment-log-configuration.properties
-            List<String> appIds = Lists
-                    .newArrayList(hooks.defaultConfigurationAppId(), CapaLogProperties.Settings.getCenterConfigAppId());
+            List<String> appIds = new ArrayList<>(2);
+            appIds.add(hooks.defaultConfigurationAppId());
+            appIds.add(CapaLogProperties.Settings.getCenterConfigAppId());
             for (int i = 0; i < appIds.size(); i++) {
                 try {
                     subscribeCapaComponentLogConfigurationByAppId(hooks, appIds.get(i), i);

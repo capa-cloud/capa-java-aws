@@ -38,11 +38,6 @@
             <artifactId>capa-spi-aws-infrastructure</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>group.rxcloud</groupId>
-            <artifactId>capa-id-generator</artifactId>
-        </dependency>
-
         <!-- cloud watch logs -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>

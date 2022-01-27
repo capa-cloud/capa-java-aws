@@ -17,12 +17,11 @@
 package group.rxcloud.capa.spi.aws.config;
 
 import com.google.common.collect.Lists;
-import group.rxcloud.capa.addons.foundation.CapaFoundation;
-import group.rxcloud.capa.addons.foundation.FoundationType;
 import group.rxcloud.capa.component.CapaConfigurationProperties;
 import group.rxcloud.capa.component.configstore.ConfigurationItem;
 import group.rxcloud.capa.component.configstore.StoreConfig;
 import group.rxcloud.capa.component.configstore.SubscribeResp;
+import group.rxcloud.capa.infrastructure.CapaEnvironment;
 import group.rxcloud.capa.infrastructure.exceptions.CapaErrorContext;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
 import group.rxcloud.capa.infrastructure.serializer.CapaObjectSerializer;
@@ -133,7 +132,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return Mono.error(new CapaException(CapaErrorContext.PARAMETER_ERROR, "keys is null or empty"));
         }
 
-        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaFoundation.getEnv(FoundationType.TRIP));
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaEnvironment.Provider.getInstance().getDeployEnv());
         String configurationName = keys.get(0);
 
         //init config and create subscribe polling
@@ -147,7 +146,7 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
     @Override
     protected <T> Flux<SubscribeResp<T>> doSubscribe(String appId, String group, String label, List<String> keys, Map<String, String> metadata, TypeRef<T> type) {
 
-        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaFoundation.getEnv(FoundationType.TRIP));
+        String applicationName = String.format(APPCONFIG_NAME_FORMAT, appId, CapaEnvironment.Provider.getInstance().getDeployEnv());
         String configurationName = keys.get(0);
 
         initAndSubscribe(applicationName, configurationName, group, label, metadata, type);
@@ -184,10 +183,10 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
         LOGGER.debug("[[type=Capa.Config.initConfig]] call getconfiguration in init process,request:{}", request);
 
         return Mono.fromCallable(() -> {
-            GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-            LOGGER.debug("[[type=Capa.Config.initConfig]] call getconfiguration in init process,response:{}", response);
-            return response;
-        })
+                    GetConfigurationResponse response = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                    LOGGER.debug("[[type=Capa.Config.initConfig]] call getconfiguration in init process,response:{}", response);
+                    return response;
+                })
                 .doOnError(e -> LOGGER.warn("[[type=Capa.Config.initConfig]] error occurs when getconfiguration in init process, request:{}", request, e))
                 .map(resp -> initConfigurationItem(applicationName, configurationName, type, resp.content(), resp.configurationVersion()))
                 .block();
@@ -207,39 +206,39 @@ public class AwsCapaConfigStore extends CapaConfigStoreSpi {
             return;
         }
         Flux.create(fluxSink -> {
-            AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
-                    .schedulePeriodically(() -> {
+                    AwsCapaConfigurationScheduler.INSTANCE.configSubscribePollingScheduler
+                            .schedulePeriodically(() -> {
 
-                        // update subscribed status if needs
-                        getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
+                                // update subscribed status if needs
+                                getConfiguration(applicationName, configurationName).getSubscribed().compareAndSet(false, true);
 
-                        String version = getCurVersion(applicationName, configurationName);
+                                String version = getCurVersion(applicationName, configurationName);
 
-                        GetConfigurationRequest request = GetConfigurationRequest.builder()
-                                .application(applicationName)
-                                .clientId(UUID.randomUUID().toString())
-                                .configuration(configurationName)
-                                .clientConfigurationVersion(version)
-                                .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
-                                .build();
-                        LOGGER.debug("[[type=Capa.Config.subscribePolling]] subscribe polling task start,request:{}", request);
+                                GetConfigurationRequest request = GetConfigurationRequest.builder()
+                                        .application(applicationName)
+                                        .clientId(UUID.randomUUID().toString())
+                                        .configuration(configurationName)
+                                        .clientConfigurationVersion(version)
+                                        .environment(AwsCapaConfigurationProperties.AppConfigProperties.Settings.getConfigAwsAppConfigEnv())
+                                        .build();
+                                LOGGER.debug("[[type=Capa.Config.subscribePolling]] subscribe polling task start,request:{}", request);
 
-                        GetConfigurationResponse resp = null;
-                        try {
-                            resp = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-                        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                            //catch error,log error and not trigger listeners
-                            LOGGER.warn("[[type=Capa.Config.subscribePolling]] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
-                        }
+                                GetConfigurationResponse resp = null;
+                                try {
+                                    resp = appConfigAsyncClient.getConfiguration(request).get(REQUEST_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+                                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                                    //catch error,log error and not trigger listeners
+                                    LOGGER.warn("[[type=Capa.Config.subscribePolling]] error occurs when getConfiguration in polling process,configurationName:{},version:{}", request.configuration(), request.clientConfigurationVersion(), e);
+                                }
 
-                        LOGGER.debug("[[type=Capa.Config.subscribePolling]] subscribe polling task end,response:{}", resp);
+                                LOGGER.debug("[[type=Capa.Config.subscribePolling]] subscribe polling task end,response:{}", resp);
 
-                        if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
-                            fluxSink.next(resp);
-                        }
-                        // todo: make the polling frequency configurable
-                    }, 0, 5, TimeUnit.SECONDS);
-        })
+                                if (resp != null && !Objects.equals(resp.configurationVersion(), version)) {
+                                    fluxSink.next(resp);
+                                }
+                                // todo: make the polling frequency configurable
+                            }, 0, 5, TimeUnit.SECONDS);
+                })
                 .publishOn(AwsCapaConfigurationScheduler.INSTANCE.configPublisherScheduler)
                 .map(origin -> {
                     GetConfigurationResponse resp = (GetConfigurationResponse) origin;

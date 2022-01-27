@@ -16,8 +16,9 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import group.rxcloud.capa.addons.id.generator.TripTraceIdGeneratePolicy;
 import io.opentelemetry.sdk.trace.IdGenerator;
+
+import java.util.UUID;
 
 /**
  * Generate trace id form aws trace log.
@@ -26,11 +27,11 @@ public class AwsTraceIdGenerator implements IdGenerator {
 
     @Override
     public String generateSpanId() {
-        return TripTraceIdGeneratePolicy.generate();
+        return UUID.randomUUID().toString();
     }
 
     @Override
     public String generateTraceId() {
-        return TripTraceIdGeneratePolicy.generate();
+        return UUID.randomUUID().toString();
     }
 }

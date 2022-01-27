@@ -51,7 +51,6 @@ public interface AwsCapaSerializerProvider {
             SERIALIZER_FACTORY = new HashMap<>(2, 1);
 
             SERIALIZER_FACTORY.put("default", new DefaultObjectSerializer());
-            SERIALIZER_FACTORY.put("baiji", new BaijiSSJsonObjectSerializer());
         }
     }
 }

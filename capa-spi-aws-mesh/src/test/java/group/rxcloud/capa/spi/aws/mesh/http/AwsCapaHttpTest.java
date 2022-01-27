@@ -18,9 +18,9 @@ package group.rxcloud.capa.spi.aws.mesh.http;
 
 import group.rxcloud.capa.component.http.HttpResponse;
 import group.rxcloud.capa.infrastructure.exceptions.CapaException;
+import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
 import group.rxcloud.capa.spi.aws.mesh.http.config.AwsRpcServiceOptions;
 import group.rxcloud.capa.spi.aws.mesh.http.config.AwsSpiOptionsLoader;
-import group.rxcloud.capa.spi.aws.mesh.http.serializer.BaijiSSJsonObjectSerializer;
 import group.rxcloud.cloudruntimes.utils.TypeRef;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Assertions;
@@ -34,17 +34,13 @@ public class AwsCapaHttpTest {
 
     private OkHttpClient okHttpClient;
 
-    private BaijiSSJsonObjectSerializer baijiSSJsonObjectSerializer;
-
     private AwsCapaHttp awsCapaHttp;
 
     @BeforeEach
     public void setUp() {
         okHttpClient = new OkHttpClient.Builder().build();
 
-        baijiSSJsonObjectSerializer = new BaijiSSJsonObjectSerializer();
-
-        awsCapaHttp = new AwsCapaHttp(okHttpClient, baijiSSJsonObjectSerializer);
+        awsCapaHttp = new AwsCapaHttp(okHttpClient, new DefaultObjectSerializer());
     }
 
     @Test

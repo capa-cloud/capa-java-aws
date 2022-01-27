@@ -16,19 +16,19 @@
  */
 package group.rxcloud.capa.spi.aws.telemetry.trace;
 
-import com.google.common.collect.Lists;
 import group.rxcloud.capa.spi.telemetry.ContextPropagatorLoaderSpi;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Load ContextPropagator for ctrip.
+ * Load ContextPropagator.
  */
 public class AwsWebContextPropagatorLoader extends ContextPropagatorLoaderSpi {
 
     @Override
     public List<TextMapPropagator> load() {
-        return Lists.newArrayList(TraceIdRpcContextPropagator.getInstance());
+        return Collections.singletonList(TraceIdRpcContextPropagator.getInstance());
     }
 }
