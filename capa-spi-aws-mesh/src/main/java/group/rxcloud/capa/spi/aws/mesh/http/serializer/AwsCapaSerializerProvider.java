@@ -37,7 +37,11 @@ public interface AwsCapaSerializerProvider {
     static CapaObjectSerializer getSerializerOrDefault(CapaObjectSerializer originSerializer) {
         final String serializerName = AwsCapaRpcProperties.SerializerProperties.Settings.getRpcAwsAppMeshSerializer();
         Map<String, CapaObjectSerializer> serializerFactory = AwsCapaSerializerFactory.SERIALIZER_FACTORY;
-        return serializerFactory.getOrDefault(serializerName, originSerializer);
+        CapaObjectSerializer configuredSerializer = serializerFactory.get(serializerName);
+        if (configuredSerializer != null) {
+            return configuredSerializer;
+        }
+        return originSerializer != null ? originSerializer : serializerFactory.get("default");
     }
 
     /**
