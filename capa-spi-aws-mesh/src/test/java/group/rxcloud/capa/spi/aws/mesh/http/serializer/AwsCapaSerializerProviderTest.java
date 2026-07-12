@@ -21,13 +21,21 @@ import group.rxcloud.capa.infrastructure.serializer.DefaultObjectSerializer;
 import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class AwsCapaSerializerProviderTest {
 
+    private String originalSerializerSetting;
+
+    @BeforeEach
+    public void captureSerializerSetting() {
+        originalSerializerSetting = AwsCapaRpcProperties.SerializerProperties.Settings.getRpcAwsAppMeshSerializer();
+    }
+
     @AfterEach
     public void resetSerializerSetting() {
-        AwsCapaRpcProperties.SerializerProperties.Settings.setRpcAwsAppMeshSerializer("default");
+        AwsCapaRpcProperties.SerializerProperties.Settings.setRpcAwsAppMeshSerializer(originalSerializerSetting);
     }
 
     @Test

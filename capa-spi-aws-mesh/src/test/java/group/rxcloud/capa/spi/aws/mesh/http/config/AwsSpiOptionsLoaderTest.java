@@ -16,6 +16,7 @@
  */
 package group.rxcloud.capa.spi.aws.mesh.http.config;
 
+import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcProperties;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -23,19 +24,33 @@ public class AwsSpiOptionsLoaderTest {
 
     @Test
     public void testLoadRpcServiceOptions_Success() {
-        System.setProperty("ENV", "meshnamespace");
+        String originalEnv = System.getProperty("ENV");
+        System.clearProperty("ENV");
 
-        AwsSpiOptionsLoader awsSpiOptionsLoader = new AwsSpiOptionsLoader();
+        // Initialize the namespace default before changing the deployment environment.
+        AwsCapaRpcProperties.AppMeshProperties.Settings.getRpcAwsAppMeshNamespace();
 
-        AwsRpcServiceOptions rpcServiceOptions = awsSpiOptionsLoader.loadRpcServiceOptions("appId");
+        try {
+            System.setProperty("ENV", "meshnamespace");
 
-        Assertions.assertEquals("appId", rpcServiceOptions.getAppId());
+            AwsSpiOptionsLoader awsSpiOptionsLoader = new AwsSpiOptionsLoader();
 
-        AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions = rpcServiceOptions.getAwsToAwsServiceOptions();
+            AwsRpcServiceOptions rpcServiceOptions = awsSpiOptionsLoader.loadRpcServiceOptions("appId");
 
-        Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
-        Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
-        Assertions.assertNotNull(awsToAwsServiceOptions.getServiceEnv());
-        Assertions.assertNull(awsToAwsServiceOptions.getNamespace());
+            Assertions.assertEquals("appId", rpcServiceOptions.getAppId());
+
+            AwsRpcServiceOptions.AwsToAwsServiceOptions awsToAwsServiceOptions = rpcServiceOptions.getAwsToAwsServiceOptions();
+
+            Assertions.assertEquals("appId", awsToAwsServiceOptions.getServiceId());
+            Assertions.assertEquals(8080, awsToAwsServiceOptions.getServicePort());
+            Assertions.assertEquals("meshnamespace", awsToAwsServiceOptions.getServiceEnv());
+            Assertions.assertNull(awsToAwsServiceOptions.getNamespace());
+        } finally {
+            if (originalEnv == null) {
+                System.clearProperty("ENV");
+            } else {
+                System.setProperty("ENV", originalEnv);
+            }
+        }
     }
 }
