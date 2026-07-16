@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in cloud-runtimes-jvm
+about: Report a bug in the Capa Java AWS adapters
 title: ''
 labels: kind/bug
 assignees: ''
@@ -34,8 +34,8 @@ assignees: ''
 <!-- How should the fix for this issue be communicated in our release notes? It can be populated later. -->
 <!-- Keep it as a single line. Examples: -->
 
-<!-- RELEASE NOTE: **ADD** New feature in Dapr. -->
-<!-- RELEASE NOTE: **FIX** Bug in runtime. -->
-<!-- RELEASE NOTE: **UPDATE** Runtime dependency. -->
+<!-- RELEASE NOTE: **ADD** New adapter capability. -->
+<!-- RELEASE NOTE: **FIX** AWS adapter behavior. -->
+<!-- RELEASE NOTE: **UPDATE** Capa or AWS SDK dependency. -->
 
 RELEASE NOTE:

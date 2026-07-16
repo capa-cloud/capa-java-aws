@@ -2,316 +2,127 @@
   <img src="./docs/banner.png" alt="Capa AWS" width="800">
 </p>
 
-<h1 align="center">Capa AWS</h1>
+# Capa Java AWS Adapters
 
-<p align="center">
-  <strong>AWS Cloud Services Implementation for Capa Java SDK</strong>
-</p>
+AWS SPI modules for the [Capa Java SDK](https://github.com/capa-cloud/capa-java). Each module connects a specific Capa component surface to AWS SDK for Java v2 services.
 
-<p align="center">
-  <a href="https://github.com/capa-cloud/capa-java">Capa Java</a> ·
-  <a href="https://aws.amazon.com/">AWS</a>
-</p>
+[Documentation](https://capa.rxcloud.group/) · [Issues](https://github.com/capa-cloud/capa-java-aws/issues)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Java-8+-007396?logo=java" alt="Java Version">
-  <img src="https://img.shields.io/badge/AWS-FF9900?logo=amazon-aws&logoColor=white" alt="AWS">
-  <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License">
-  <img src="https://img.shields.io/badge/Maven-1.0.7.RELEASE-green" alt="Maven Version">
-</p>
+> This repository contains adapters, not a standalone application. Applications must include `capa-sdk` and only the adapter modules they use.
 
----
+## Requirements and versions
 
-## 📖 Introduction
+- Java 8 or 11
+- Maven 3.8.1 or later
+- Capa Java `1.11.13.2.RELEASE`
+- Capa AWS adapters `1.11.13.5.RELEASE`
+- AWS credentials and IAM permissions for the selected services
 
-**Capa AWS** provides AWS cloud service implementations for the [Capa Java SDK](https://github.com/capa-cloud/capa-java), enabling Java applications to leverage AWS managed services through Capa's standardized APIs.
+There is no `group.rxcloud:capa-spi-aws:1.11.13.5.RELEASE` aggregate artifact. Depend on the individual modules below.
 
-This project implements Capa's SPI (Service Provider Interface) for AWS services, allowing seamless integration of AWS capabilities into your Java applications with minimal configuration changes.
+## Modules
 
-### Supported AWS Services
+| Artifact | AWS integration | Implemented surface |
+| --- | --- | --- |
+| `capa-spi-aws-mesh` | App Mesh-compatible service addressing | `AwsCapaHttp`, RPC options and serializer loading |
+| `capa-spi-aws-config` | AWS AppConfig | `AwsCapaConfigStore`, polling and serialization |
+| `capa-spi-aws-telemetry` | Amazon CloudWatch | Metric export and AWS trace-context propagation |
+| `capa-spi-aws-log` | Amazon CloudWatch Logs | Log4j/Logback appenders and log delivery |
+| `capa-spi-aws-infrastructure` | Shared Capa infrastructure | Common environment integration used by the other modules |
 
-| AWS Service | Capa Feature | Status |
-|-------------|--------------|--------|
-| AWS App Mesh | RPC Service | ✅ Stable |
-| AWS AppConfig | Configuration | ✅ Stable |
-| AWS CloudWatch | Telemetry | ✅ Stable |
+The table describes code present in this repository. It does not claim that AWS provisions service discovery, routing, mTLS, alarms, or X-Ray resources for the application. Configure those capabilities separately in AWS when required.
 
----
+## Add an adapter
 
-## 🏗️ Architecture
-
-<p align="center">
-  <img src="./docs/architecture.png" alt="Capa AWS Architecture" width="750">
-</p>
-
-### Module Structure
-
-```
-capa-java-aws/
-├── capa-spi-aws-mesh/           # AWS App Mesh implementation for RPC
-├── capa-spi-aws-config/         # AWS AppConfig implementation
-├── capa-spi-aws-telemetry/      # AWS CloudWatch for metrics/logs
-├── capa-spi-aws-log/            # AWS CloudWatch Logs
-├── capa-spi-aws-infrastructure/ # Common AWS infrastructure utilities
-├── example/                     # Usage examples
-└── pom.xml                      # Maven parent POM
-```
-
-**Key Design Principles:**
-- **Standard API**: Implements Capa's vendor-neutral interfaces
-- **AWS Native**: Leverages AWS SDK best practices
-- **Pluggable**: Easy to swap with other cloud implementations
-- **Production Ready**: Battle-tested with enterprise workloads
-
----
-
-## ✨ Features
-
-<p align="center">
-  <img src="./docs/features.png" alt="Capa AWS Features" width="700">
-</p>
-
-### RPC Service (AWS App Mesh)
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| Service Discovery | Automatic service registration and discovery | ✅ Stable |
-| Load Balancing | Client-side load balancing | ✅ Stable |
-| Traffic Management | Advanced routing and traffic splitting | ✅ Stable |
-| mTLS | Mutual TLS for secure communication | ✅ Stable |
-
-### Configuration (AWS AppConfig)
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| Dynamic Config | Runtime configuration updates | ✅ Stable |
-| Feature Flags | Toggle features without deployment | ✅ Stable |
-| Safe Rollouts | Gradual configuration rollouts | ✅ Stable |
-| Validation | Automatic configuration validation | ✅ Stable |
-
-### Telemetry (AWS CloudWatch)
-
-| Feature | Description | Status |
-|---------|-------------|--------|
-| Metrics | Custom metrics and dashboards | ✅ Stable |
-| Logs | Centralized log aggregation | ✅ Stable |
-| Alarms | Automated alerting | ✅ Stable |
-| Traces | Distributed tracing with X-Ray | 🔬 Beta |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Java 8 or higher
-- AWS Account with appropriate permissions
-- AWS CLI configured (optional but recommended)
-
-### Maven Dependency
+Choose only the modules required by the application. For example:
 
 ```xml
-<dependency>
-    <groupId>group.rxcloud</groupId>
-    <artifactId>capa-spi-aws</artifactId>
-    <version>1.0.7.RELEASE</version>
-</dependency>
+<properties>
+    <capa.version>1.11.13.2.RELEASE</capa.version>
+    <capa.aws.version>1.11.13.5.RELEASE</capa.aws.version>
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>group.rxcloud</groupId>
+        <artifactId>capa-sdk</artifactId>
+        <version>${capa.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>group.rxcloud</groupId>
+        <artifactId>capa-spi-aws-mesh</artifactId>
+        <version>${capa.aws.version}</version>
+        <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>group.rxcloud</groupId>
+        <artifactId>capa-spi-aws-config</artifactId>
+        <version>${capa.aws.version}</version>
+        <scope>runtime</scope>
+    </dependency>
+</dependencies>
 ```
 
-Or include specific modules:
+Use `capa-spi-aws-telemetry` and `capa-spi-aws-log` in the same way when those integrations are needed.
 
-```xml
-<!-- RPC with AWS App Mesh -->
-<dependency>
-    <groupId>group.rxcloud</groupId>
-    <artifactId>capa-spi-aws-mesh</artifactId>
-    <version>1.0.7.RELEASE</version>
-</dependency>
+Adapter classes are discovered through Capa component resource mappings. Do not instantiate internal SPI classes as application clients. The relevant defaults and mapping files are:
 
-<!-- Configuration with AWS AppConfig -->
-<dependency>
-    <groupId>group.rxcloud</groupId>
-    <artifactId>capa-spi-aws-config</artifactId>
-    <version>1.0.7.RELEASE</version>
-</dependency>
+- [Mesh RPC settings](capa-spi-aws-mesh/src/main/resources/capa-component-rpc-aws.properties)
+- [AppConfig settings](capa-spi-aws-config/src/main/resources/capa-component-configuration-aws.properties)
+- [Telemetry settings](capa-spi-aws-telemetry/src/main/resources/capa-component-telemetry-aws.properties)
+- [Log component mapping](capa-spi-aws-log/src/main/resources/capa-component-log.properties)
 
-<!-- Telemetry with AWS CloudWatch -->
-<dependency>
-    <groupId>group.rxcloud</groupId>
-    <artifactId>capa-spi-aws-telemetry</artifactId>
-    <version>1.0.7.RELEASE</version>
-</dependency>
+Copy environment-specific values into the application's configuration. Do not modify and publish credentials in these resource files.
+
+## AWS credentials
+
+AWS clients use the AWS SDK default credential and Region resolution behavior. Prefer short-lived credentials supplied by the workload environment, such as an ECS task role or EC2 instance profile. Local development can use environment variables or an AWS shared configuration profile.
+
+Never commit `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, session tokens, account identifiers, or private endpoints to this repository.
+
+## Repository layout
+
+```text
+.
+├── capa-spi-aws-mesh/
+├── capa-spi-aws-config/
+├── capa-spi-aws-telemetry/
+├── capa-spi-aws-log/
+├── capa-spi-aws-infrastructure/
+├── example/                       # Current logging example
+└── pom.xml
 ```
 
-### Quick Start
+The current [`example/`](example/) module demonstrates the logging integration. Treat module tests as implementation examples for configuration, mesh, and telemetry until dedicated runnable samples are added.
 
-#### 1. RPC Service (AWS App Mesh)
-
-```java
-import group.rxcloud.capa.spi.aws.mesh.AwsCapaRpcService;
-
-// Initialize the AWS RPC service
-AwsCapaRpcService rpcService = new AwsCapaRpcService();
-
-// Invoke a remote service
-byte[] response = rpcService.invokeMethod(
-    "service-name",
-    "method-name",
-    requestData
-);
-```
-
-#### 2. Configuration (AWS AppConfig)
-
-```java
-import group.rxcloud.capa.spi.aws.config.AwsCapaConfigurationService;
-
-// Initialize the AWS Configuration service
-AwsCapaConfigurationService configService = new AwsCapaConfigurationService();
-
-// Get configuration values
-Map<String, String> config = configService.getConfiguration(
-    "appconfig-store",
-    Arrays.asList("key1", "key2")
-);
-
-// Subscribe to configuration changes
-ConfigurationSubscription subscription = configService.subscribeConfiguration(
-    "appconfig-store",
-    Arrays.asList("key1")
-);
-```
-
-#### 3. Telemetry (AWS CloudWatch)
-
-```java
-import group.rxcloud.capa.spi.aws.telemetry.AwsCapaTelemetryService;
-
-// Initialize the AWS Telemetry service
-AwsCapaTelemetryService telemetryService = new AwsCapaTelemetryService();
-
-// Record custom metrics
-telemetryService.recordMetric(
-    "CustomMetricName",
-    1.0,
-    MetricUnit.Count,
-    tags
-);
-
-// Log events
-telemetryService.logEvent(
-    LogLevel.INFO,
-    "Application started successfully",
-    context
-);
-```
-
----
-
-## ⚙️ Configuration
-
-### AWS Credentials
-
-Capa AWS uses the standard AWS credentials chain:
-
-1. Environment variables (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`)
-2. Java system properties
-3. AWS credentials file (`~/.aws/credentials`)
-4. ECS container credentials
-5. EC2 instance profile
-
-### Application Configuration
-
-```yaml
-# application.yml
-capa:
-  aws:
-    region: us-east-1
-    mesh:
-      virtual-node: my-virtual-node
-      namespace: my-namespace
-    config:
-      application: my-app
-      environment: production
-      configuration-profile: default
-    telemetry:
-      namespace: MyApplication/Metrics
-      log-group: /aws/application/my-app
-```
-
----
-
-## 📚 Examples
-
-See the [example](./example) directory for complete working examples:
-
-- **Mesh Example**: Service-to-service communication with App Mesh
-- **Config Example**: Dynamic configuration with AppConfig
-- **Telemetry Example**: Metrics and logging with CloudWatch
-
----
-
-## 🌐 Ecosystem
-
-Capa AWS is part of the broader Capa Cloud ecosystem:
-
-| Project | Description |
-|---------|-------------|
-| [capa-java](https://github.com/capa-cloud/capa-java) | Core Capa Java SDK |
-| [capa-java-alibaba](https://github.com/capa-cloud/capa-java-alibaba) | Alibaba Cloud implementation |
-| [cloud-runtimes-jvm](https://github.com/capa-cloud/cloud-runtimes-jvm) | JVM API specification |
-
----
-
-## 🤝 Contributing
-
-We welcome contributions from the community!
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Setup
+## Build and verify
 
 ```bash
-# Clone the repository
 git clone https://github.com/capa-cloud/capa-java-aws.git
 cd capa-java-aws
-
-# Build with Maven
-mvn clean install
-
-# Run tests
-mvn test
-
-# Package
-mvn package -DskipTests
+mvn --batch-mode --no-transfer-progress --fail-fast clean verify \
+  -Pjacoco,rat,checkstyle \
+  -DskipTests=false \
+  -Dcheckstyle.skip=false \
+  -Drat.skip=false \
+  -Dmaven.javadoc.skip=true \
+  -Dgpg.skip=true
 ```
 
-### Code Style
+CI runs this command on Java 8 and Java 11. Tests mock or isolate AWS calls where possible; production readiness still requires integration tests with the target IAM policies, Region, network, and AWS resources.
 
-This project follows standard Java conventions:
+## Contributing
 
-- Google Java Format
-- Checkstyle validation
-- SpotBugs static analysis
+1. Create a branch from `master`.
+2. Keep adapter behavior compatible with Capa Java `1.11.13.2.RELEASE`.
+3. Add mocked tests for adapter behavior and integration tests for changes that depend on AWS responses.
+4. Update resource examples and this README when configuration keys or artifacts change.
+5. Run the full verification command above before opening a pull request.
 
----
+The repository enforces Apache RAT and Checkstyle. It does not currently configure Google Java Format or SpotBugs.
 
-## 📜 License
+## License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
----
-
-<p align="center">
-  <strong>Building portable cloud-native applications on AWS</strong>
-</p>
-
-<p align="center">
-  <a href="https://github.com/capa-cloud">Capa Cloud</a> ·
-  <a href="https://capa.rxcloud.group/">Documentation</a> ·
-  <a href="https://aws.amazon.com/">AWS</a>
-</p>
+Apache License 2.0. See [LICENSE](LICENSE).
