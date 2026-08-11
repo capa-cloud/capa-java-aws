@@ -94,7 +94,7 @@
         <cobertura.maven.version>2.7</cobertura.maven.version>
         <maven.resource.version>3.2.0</maven.resource.version>
         <maven.surefire.version>3.0.0-M1</maven.surefire.version>
-        <maven.jacoco.version>0.8.6</maven.jacoco.version>
+        <maven.jacoco.version>0.8.15</maven.jacoco.version>
     </properties>
 
     <dependencyManagement>

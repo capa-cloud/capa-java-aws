@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/banner.png" alt="Capa AWS" width="800">
+  <img src="./docs/banner.jpg" alt="Abstract illustration of Capa applications connecting through adapters to AWS infrastructure" width="800">
 </p>
 
 # Capa Java AWS Adapters
